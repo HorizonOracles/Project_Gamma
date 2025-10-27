@@ -1,0 +1,33 @@
+# Environment files
+.env
+.env.local
+*.env
+
+# Logs
+*.log
+logs/
+
+# Build artifacts
+ai-resolver/bin/
+ai-resolver/ai-resolver
+ai-resolver/ai-resolver-*
+*.exe
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+plan.md
+PROGRESS.md
+implementation-roadmap.md
+deploy_local.sh
