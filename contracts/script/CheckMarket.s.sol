@@ -1,0 +1,62 @@
+// SPDX-License-Identifier: MIT
+pragma solidity 0.8.24;
+
+import "forge-std/Script.sol";
+import "../src/MarketFactory.sol";
+import "../src/ResolutionModule.sol";
+import "../src/AIOracleAdapter.sol";
+
+contract CheckMarket is Script {
+    function run() external view {
+        // Load addresses from environment
+        address factoryAddr = vm.envAddress("MARKET_FACTORY_ADDR");
+        address resolutionAddr = vm.envAddress("RESOLUTION_MODULE_ADDR");
+        address adapterAddr = vm.envAddress("AI_ORACLE_ADAPTER_ADDR");
+        
+        MarketFactory factory = MarketFactory(factoryAddr);
+        ResolutionModule resolution = ResolutionModule(resolutionAddr);
+        AIOracleAdapter adapter = AIOracleAdapter(adapterAddr);
+        
+        uint256 marketId = 1;
+        
+        console.log("=== MARKET INFO ===");
+        (
+            string memory question,
+            uint256 closeTime,
+            ,
+            address creator,
+            ,
+            MarketFactory.MarketStatus status
+        ) = factory.markets(marketId);
+        
+        console.log("Market ID:", marketId);
+        console.log("Question:", question);
+        console.log("CloseTime:", closeTime);
+        console.log("Creator:", creator);
+        console.log("Status:", uint256(status));
+        console.log("Current block.timestamp:", block.timestamp);
+        console.log("Market closed?", block.timestamp >= closeTime);
+        
+        console.log("\n=== RESOLUTION MODULE ===");
+        (
+            bool exists,
+            uint256 resOutcome,
+            ResolutionModule.ResolutionStatus resStatus,
+            uint256 propCount
+        ) = resolution.marketResolutions(marketId);
+        
+        console.log("Resolution exists:", exists);
+        console.log("Resolved outcome:", resOutcome);
+        console.log("Resolution status:", uint256(resStatus));
+        console.log("Proposal count:", propCount);
+        
+        console.log("\n=== AI ORACLE ADAPTER ===");
+        console.log("Adapter address:", adapterAddr);
+        console.log("Domain separator:", vm.toString(adapter.DOMAIN_SEPARATOR()));
+        
+        // Check signer
+        address signer = 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266;
+        console.log("Signer:", signer);
+        console.log("Is allowed signer:", adapter.allowedSigners(signer));
+    }
+}
