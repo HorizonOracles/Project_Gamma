@@ -1,0 +1,74 @@
+services:
+  # Local Ethereum node for testing (Anvil)
+  anvil:
+    image: ghcr.io/foundry-rs/foundry:latest
+    command: ["anvil", "--host", "0.0.0.0", "--chain-id", "31337", "--block-time", "2"]
+    environment:
+      - ANVIL_IP_ADDR=0.0.0.0
+    ports:
+      - "8545:8545"
+    volumes:
+      - ../contracts:/contracts
+    networks:
+      - gamma-network
+    healthcheck:
+      test: ["CMD", "cast", "client", "--rpc-url", "http://localhost:8545"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # AI Resolver Service
+  ai-resolver:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      # Server config
+      - SERVER_PORT=8080
+      - SERVER_HOST=0.0.0.0
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      
+      # Blockchain config
+      - CHAIN_ID=${CHAIN_ID:-31337}
+      - RPC_ENDPOINT=${RPC_ENDPOINT:-http://anvil:8545}
+      
+      # Contract addresses (set these after deployment)
+      - AI_ORACLE_ADAPTER_ADDR=${AI_ORACLE_ADAPTER_ADDR:-0x0000000000000000000000000000000000000000}
+      - RESOLUTION_MODULE_ADDR=${RESOLUTION_MODULE_ADDR:-0x0000000000000000000000000000000000000000}
+      - HORIZON_TOKEN_ADDR=${HORIZON_TOKEN_ADDR:-0x0000000000000000000000000000000000000000}
+      - MARKET_FACTORY_ADDR=${MARKET_FACTORY_ADDR:-0x0000000000000000000000000000000000000000}
+      
+      # OpenAI config
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_MODEL=${OPENAI_MODEL:-gpt-4-turbo-preview}
+      
+      # Signer config
+      - SIGNER_PRIVATE_KEY=${SIGNER_PRIVATE_KEY}
+      
+      # Operational config
+      - DEFAULT_BOND_AMOUNT=${DEFAULT_BOND_AMOUNT:-1000000000000000000000}
+      - PROPOSAL_TIMEOUT=${PROPOSAL_TIMEOUT:-5m}
+      - MAX_CONCURRENT_MARKETS=${MAX_CONCURRENT_MARKETS:-10}
+    depends_on:
+      anvil:
+        condition: service_healthy
+    networks:
+      - gamma-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+networks:
+  gamma-network:
+    driver: bridge
+
+# Optional: Volumes for persistent data
+# volumes:
+#   anvil-data:
+#     driver: local

@@ -1,0 +1,19 @@
+# Binaries
+bin/
+ai-resolver
+ai-resolver-*
+*.exe
+
+# Environment files
+.env
+.env.local
+
+# Logs
+*.log
+
+# Test files
+test_*.go
+
+# IDE
+.vscode/
+.idea/
