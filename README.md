@@ -10,8 +10,6 @@
 [![Twitter](https://img.shields.io/badge/Twitter-@HorizonOracles-1DA1F2?style=flat-square&logo=twitter)](https://x.com/HorizonOracles)
 [![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
 
-<img src="assets/HORIZON-Recovered.png" alt="Horizon" height="40">
-
 **Built on** <a href="https://www.bnbchain.org/"><img src="assets/bnb-chain-full-binance-smart-chain-logo-1-1024x180.png" alt="BNB Chain" height="30"></a>
 
 *Combining on-chain trading with AI-powered resolution for transparent, automated prediction markets*
