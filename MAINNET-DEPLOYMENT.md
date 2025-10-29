@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🚀 Mainnet Deployment
+#  Mainnet Deployment
 
 **Project Gamma - BNB Chain Launch**
 
