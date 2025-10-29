@@ -41,7 +41,7 @@ contract CheckMarket is Script {
         (
             bool exists,
             uint256 resOutcome,
-            ResolutionModule.ResolutionStatus resStatus,
+            ResolutionModule.ResolutionState resStatus,
             uint256 propCount
         ) = resolution.marketResolutions(marketId);
         
