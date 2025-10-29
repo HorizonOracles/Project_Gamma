@@ -789,11 +789,44 @@ This project is licensed under the MIT License. See the [LICENSE](./LICENSE) fil
 
 [![Website](https://img.shields.io/badge/🌐-horizonoracles.com-blue?style=for-the-badge)](https://horizonoracles.com/)
 [![Twitter](https://img.shields.io/badge/Twitter-@HorizonOracles-1DA1F2?style=for-the-badge&logo=twitter)](https://x.com/HorizonOracles)
+[![Discord](https://img.shields.io/badge/Discord-Join%20Us-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.com/invite/TuUHwwKjHh)
 [![GitHub Issues](https://img.shields.io/badge/GitHub-Issues-181717?style=for-the-badge&logo=github)](https://github.com/yourusername/project_gamma/issues)
 
-For questions, feature requests, or bug reports, please open a GitHub issue or reach out on Twitter.
-
 </div>
+
+### Contact
+
+<table>
+<tr>
+<td width="33%" align="center">
+
+**Business Inquiries**
+
+Enterprise integrations and strategic collaborations
+
+[partnerships@horizonoracles.com](mailto:partnerships@horizonoracles.com)
+
+</td>
+<td width="33%" align="center">
+
+**Developer Support**
+
+Technical support and integration assistance
+
+[developers@horizonoracles.com](mailto:developers@horizonoracles.com)
+
+</td>
+<td width="33%" align="center">
+
+**Media**
+
+Press inquiries and media requests
+
+[press@horizonoracles.com](mailto:press@horizonoracles.com)
+
+</td>
+</tr>
+</table>
 
 ---
 
