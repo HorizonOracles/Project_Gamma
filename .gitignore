@@ -31,3 +31,6 @@ plan.md
 PROGRESS.md
 implementation-roadmap.md
 deploy_local.sh
+
+# AI agent documentation (internal use only)
+.ai/
