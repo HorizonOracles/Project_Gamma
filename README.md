@@ -1,305 +1,420 @@
+<div align="center">
+
+![Project Gamma Banner](assets/banner1.png)
+
 # Project Gamma
 
-A decentralized prediction market platform combining on-chain trading with AI-powered resolution on BNB Chain.
+**Decentralized Prediction Markets Powered by AI**
 
-## Table of Contents
+[![Website](https://img.shields.io/badge/Website-horizonoracles.com-blue?style=flat-square)](https://horizonoracles.com/)
+[![Twitter](https://img.shields.io/badge/Twitter-@HorizonOracles-1DA1F2?style=flat-square&logo=twitter)](https://x.com/HorizonOracles)
+[![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
+[![BNB Chain](https://img.shields.io/badge/Built%20on-BNB%20Chain-F0B90B?style=flat-square)](https://www.bnbchain.org/)
 
-- [Overview](#overview)
-- [Architecture](#architecture)
-- [Core Features](#core-features)
-- [Smart Contracts](#smart-contracts)
-- [Getting Started](#getting-started)
-- [Development](#development)
-- [Testing](#testing)
-- [Deployment](#deployment)
-- [Documentation](#documentation)
-- [Security](#security)
-- [License](#license)
+*Combining on-chain trading with AI-powered resolution for transparent, automated prediction markets*
+
+---
+
+[Overview](#overview) • [Architecture](#architecture) • [Getting Started](#getting-started) • [Documentation](#documentation) • [Security](#security)
+
+---
+
+</div>
 
 ## Overview
 
-Project Gamma is a decentralized prediction market platform that enables users to create and trade binary outcome markets. The platform leverages AI-powered resolution for automated, evidence-based outcome determination while maintaining full on-chain transparency and decentralization.
+Project Gamma is a decentralized prediction market platform that enables users to create and trade binary outcome markets. The platform leverages AI-powered resolution for automated, evidence-based outcome determination while maintaining full on-chain transparency and decentralization on BNB Chain.
 
-### Key Components
+### Core Components
 
-1. **Smart Contracts**: Solidity contracts deployed on BNB Chain managing market creation, trading, and resolution
-2. **AI Resolver**: Go-based backend service that gathers evidence and proposes resolutions using cryptographic signatures
-3. **HORIZON Token**: Platform utility token providing fee discounts and governance participation
+<table>
+<tr>
+<td width="33%" valign="top">
+
+**Smart Contracts**
+
+Solidity contracts deployed on BNB Chain managing market creation, trading, and resolution with full decentralization.
+
+</td>
+<td width="33%" valign="top">
+
+**AI Resolver**
+
+Go-based backend service that gathers evidence and proposes resolutions using cryptographic signatures.
+
+</td>
+<td width="33%" valign="top">
+
+**HORIZON Token**
+
+Platform utility token providing fee discounts and governance participation rights.
+
+</td>
+</tr>
+</table>
+
+---
 
 ## Architecture
 
-### System Design
+### Two-Layer System Design
 
-The platform operates as a two-layer system:
+<table>
+<tr>
+<td width="50%" valign="top">
 
-**Layer 1 - On-Chain (BNB Chain)**
+**Layer 1: On-Chain (BNB Chain)**
+
 - Market creation and lifecycle management
 - Automated market maker (AMM) for binary outcome trading
 - Resolution state machine with dispute mechanism
 - Fee collection and distribution
 - Outcome token minting and redemption
 
-**Layer 2 - Off-Chain (AI Resolver)**
+</td>
+<td width="50%" valign="top">
+
+**Layer 2: Off-Chain (AI Resolver)**
+
 - Evidence gathering through web search
 - Multi-pass LLM analysis pipeline
 - EIP-712 signature generation for proposals
 - Automated proposal submission
 
+</td>
+</tr>
+</table>
+
 ### Smart Contract Architecture
 
 ```
 MarketFactory (Central Registry)
+    │
     ├── MarketAMM (Per-Market Trading)
     │   └── Uses OutcomeToken (ERC-1155)
+    │
     ├── ResolutionModule (Dispute & Resolution)
     │   └── AIOracleAdapter (Signature Verification)
+    │
     ├── FeeSplitter (Fee Distribution)
+    │
     └── HorizonPerks (Fee Tier Management)
 ```
+
+---
 
 ## Core Features
 
 ### Market Trading
 
-- **Automated Market Maker**: Constant product formula (x*y=k) for price discovery
-- **Binary Outcomes**: YES/NO outcome tokens for each market
-- **Liquidity Provision**: LP tokens for liquidity providers with proportional fee earnings
-- **Slippage Protection**: Minimum output requirements on all trades
+The platform implements a robust automated market maker with the following characteristics:
 
-### Fee Structure
+<table>
+<tr>
+<td width="50%">
 
-The platform implements a dynamic fee model based on HORIZON token holdings:
+**Constant Product Formula**
 
-- **User Fee**: Constant 2% on all trades
-- **Protocol/Creator Split**: Variable based on trader's HORIZON balance
-  - Default (0 HORIZON): 10% protocol / 90% creator
-  - Tier 4 (500K+ HORIZON): 2% protocol / 98% creator
+Utilizes the x·y=k formula for efficient price discovery and liquidity provision in binary outcome markets.
+
+</td>
+<td width="50%">
+
+**Binary Outcomes**
+
+Each market issues YES and NO outcome tokens, enabling traders to take positions on either side of a prediction.
+
+</td>
+</tr>
+<tr>
+<td width="50%">
+
+**Liquidity Provision**
+
+LP token holders earn proportional trading fees while providing liquidity to markets.
+
+</td>
+<td width="50%">
+
+**Slippage Protection**
+
+All trades include minimum output requirements to protect against unfavorable price movements.
+
+</td>
+</tr>
+</table>
+
+### Dynamic Fee Structure
+
+The platform implements a tiered fee model that incentivizes HORIZON token ownership:
+
+| Component | Rate | Description |
+|-----------|------|-------------|
+| **User Fee** | 2% | Constant across all trades |
+| **Protocol/Creator Split** | Variable | Based on trader's HORIZON balance |
+
+**Fee Tier Examples:**
+
+- **Default (0 HORIZON):** 10% protocol / 90% creator
+- **Tier 4 (500K+ HORIZON):** 2% protocol / 98% creator
 
 This model incentivizes market creators to attract HORIZON token holders while maintaining simple, predictable fees for users.
 
 ### Resolution System
 
-**Optimistic Resolution**
-- AI proposes outcomes with evidence
-- 48-hour dispute window
-- Proposer stakes collateral (refunded if accepted)
+**Three-Stage Resolution Process**
 
-**Dispute Mechanism**
-- Anyone can dispute with counter-evidence
-- Disputer stakes higher collateral
-- Manual arbitration for disputed outcomes
+<table>
+<tr>
+<td width="33%" align="center">
 
-**Security Features**
-- EIP-712 signature verification
-- Multi-signer support for redundancy
-- Evidence hash validation
-- Stake-based incentive alignment
+**1. Proposal**
+
+AI analyzes evidence and proposes outcome with cryptographic signature
+
+</td>
+<td width="33%" align="center">
+
+**2. Dispute Window**
+
+48-hour period for community review and potential disputes
+
+</td>
+<td width="33%" align="center">
+
+**3. Finalization**
+
+Automatic finalization or manual arbitration if disputed
+
+</td>
+</tr>
+</table>
+
+**Security Features:**
+- EIP-712 signature verification for all AI proposals
+- Multi-signer support for redundancy and decentralization
+- Evidence hash validation to prevent tampering
+- Stake-based incentive alignment for proposers and disputers
 
 ### HORIZON Token Utility
 
-1. **Fee Optimization**: Higher holdings reduce protocol's share of fees
-2. **Market Creation**: Required stake for market creation (refunded after resolution)
-3. **Governance**: Future governance participation rights
-4. **Creator Incentives**: Attracts high-value traders to markets
+<table>
+<tr>
+<td width="25%" align="center">
+
+**Fee Optimization**
+
+Reduce protocol fee share through token holdings
+
+</td>
+<td width="25%" align="center">
+
+**Market Creation**
+
+Required stake for creating markets (refunded after resolution)
+
+</td>
+<td width="25%" align="center">
+
+**Governance**
+
+Future participation rights in protocol decisions
+
+</td>
+<td width="25%" align="center">
+
+**Creator Incentives**
+
+Attract high-value traders to your markets
+
+</td>
+</tr>
+</table>
+
+---
 
 ## Smart Contracts
 
-### Core Contracts
+### Core Contract Registry
 
-| Contract | Description | Key Functions |
-|----------|-------------|---------------|
-| `MarketFactory` | Central registry for market creation and management | `createMarket()`, `updateMarketStatus()`, `refundCreatorStake()` |
-| `MarketAMM` | Constant product AMM for binary outcome trading | `buyYes()`, `buyNo()`, `addLiquidity()`, `removeLiquidity()` |
-| `ResolutionModule` | Resolution lifecycle and dispute management | `proposeResolution()`, `dispute()`, `finalize()` |
-| `AIOracleAdapter` | EIP-712 signature verification for AI proposals | `proposeAI()`, `addSigner()`, `removeSigner()` |
-| `OutcomeToken` | ERC-1155 for outcome shares and redemption | `mintOutcome()`, `burnOutcome()`, `redeem()` |
-| `FeeSplitter` | Fee distribution between protocol and creators | `distribute()`, `claimProtocolFees()`, `claimCreatorFees()` |
-| `HorizonPerks` | Fee tier calculation based on HORIZON holdings | `feeBpsFor()`, `protocolBpsFor()`, `addTier()` |
-| `HorizonToken` | ERC-20 platform utility token | Standard ERC-20 functions |
+| Contract | Purpose | Key Responsibilities |
+|----------|---------|---------------------|
+| **MarketFactory** | Central Registry | Market creation, status management, creator stake handling |
+| **MarketAMM** | Trading Engine | Binary outcome trading via constant product AMM |
+| **ResolutionModule** | Resolution Manager | Lifecycle management, dispute handling, finalization |
+| **AIOracleAdapter** | Signature Verifier | EIP-712 verification for AI-generated proposals |
+| **OutcomeToken** | Token Standard | ERC-1155 implementation for outcome shares |
+| **FeeSplitter** | Fee Distribution | Protocol and creator fee allocation |
+| **HorizonPerks** | Fee Calculator | Dynamic fee tier computation |
+| **HorizonToken** | Utility Token | ERC-20 platform token implementation |
 
-### Contract Interactions
+### Contract Interaction Flows
 
-**Market Creation Flow**
+<details>
+<summary><strong>Market Creation Flow</strong></summary>
+
 ```
 User → MarketFactory.createMarket()
-    → Stakes HORIZON tokens
-    → Deploys new MarketAMM instance
-    → Registers with FeeSplitter
-    → Registers with OutcomeToken
-    → Returns Market ID
+    ├── Stakes HORIZON tokens
+    ├── Deploys new MarketAMM instance
+    ├── Registers with FeeSplitter
+    ├── Registers with OutcomeToken
+    └── Returns Market ID
 ```
 
-**Trading Flow**
+</details>
+
+<details>
+<summary><strong>Trading Flow</strong></summary>
+
 ```
 Trader → MarketAMM.buyYes()
-    → Checks HORIZON balance for fee tier
-    → Transfers collateral from trader
-    → Mints outcome token pairs
-    → Executes CPMM swap
-    → Distributes fees via FeeSplitter
-    → Transfers outcome tokens to trader
+    ├── Checks HORIZON balance for fee tier
+    ├── Transfers collateral from trader
+    ├── Mints outcome token pairs
+    ├── Executes CPMM swap
+    ├── Distributes fees via FeeSplitter
+    └── Transfers outcome tokens to trader
 ```
 
-**Resolution Flow**
+</details>
+
+<details>
+<summary><strong>Resolution Flow</strong></summary>
+
 ```
 AI Resolver → AIOracleAdapter.proposeAI()
-    → Verifies EIP-712 signature
-    → Validates evidence hash
-    → Forwards to ResolutionModule
-    → Starts dispute window
-    → Waits 48 hours
-    → Finalizes if no disputes
-    → Enables winner redemptions
+    ├── Verifies EIP-712 signature
+    ├── Validates evidence hash
+    ├── Forwards to ResolutionModule
+    ├── Starts 48-hour dispute window
+    ├── Waits for disputes or timeout
+    └── Finalizes and enables redemptions
 ```
+
+</details>
+
+---
 
 ## Getting Started
 
 ### Prerequisites
 
-- [Foundry](https://book.getfoundry.sh/) (for smart contract development)
-- Go 1.24+ (for AI resolver)
-- Node.js 18+ (optional, for additional tooling)
+<table>
+<tr>
+<td width="50%">
+
+**Development Environment**
+- Foundry (smart contract development)
+- Go 1.24+ (AI resolver)
+- Node.js 18+ (optional tooling)
+
+</td>
+<td width="50%">
+
+**Access & Keys**
 - BNB Chain testnet/mainnet access
 - OpenAI API key (for AI resolver)
+- Private key for deployment
 
-### Installation
+</td>
+</tr>
+</table>
 
-**1. Clone the Repository**
+### Quick Start
+
+**1. Clone and Install**
 
 ```bash
 git clone https://github.com/yourusername/project_gamma.git
 cd project_gamma
-```
 
-**2. Install Smart Contract Dependencies**
-
-```bash
+# Install smart contract dependencies
 cd contracts
 forge install
 ```
 
-**3. Configure Environment**
+**2. Configure Environment**
 
 ```bash
 cp .env.example .env
-# Edit .env with your configuration:
-# - PRIVATE_KEY: Deployment wallet private key
-# - BSC_RPC_URL: BNB Chain RPC endpoint
-# - BSCSCAN_API_KEY: Block explorer API key (for verification)
+# Edit .env with your configuration
 ```
 
-**4. Run Tests**
+**3. Run Tests**
 
 ```bash
 forge test
 ```
 
-### Local Development
+### Local Development Commands
 
-**Compile Contracts**
+<table>
+<tr>
+<td width="50%">
 
-```bash
-cd contracts
-forge build
-```
-
-**Run Tests with Gas Report**
+**Smart Contracts**
 
 ```bash
-forge test --gas-report
+forge build              # Compile contracts
+forge test               # Run tests
+forge test --gas-report  # Gas analysis
+forge fmt                # Format code
+forge doc                # Generate docs
 ```
 
-**Format Code**
+</td>
+<td width="50%">
 
-```bash
-forge fmt
-```
-
-**Generate Documentation**
-
-```bash
-forge doc
-```
-
-## Development
-
-### Smart Contract Development
-
-The contracts are built using Foundry, a modern Solidity development framework.
-
-**Project Structure**
-
-```
-contracts/
-├── src/                    # Contract source files
-│   ├── MarketFactory.sol
-│   ├── MarketAMM.sol
-│   ├── ResolutionModule.sol
-│   ├── AIOracleAdapter.sol
-│   ├── OutcomeToken.sol
-│   ├── FeeSplitter.sol
-│   ├── HorizonPerks.sol
-│   └── HorizonToken.sol
-├── test/                   # Test files
-│   ├── unit/              # Unit tests for individual contracts
-│   └── integration/       # Integration tests for workflows
-├── script/                # Deployment and utility scripts
-│   └── Deploy.s.sol
-└── docs/                  # Additional documentation
-```
-
-### AI Resolver Development
-
-The AI resolver is built in Go and provides automated resolution proposals.
-
-**Building the Resolver**
+**AI Resolver**
 
 ```bash
 cd ai-resolver
 go build -o bin/ai-resolver ./cmd/server
+go test ./...            # Run tests
+./bin/ai-resolver        # Start server
 ```
 
-**Running Tests**
+</td>
+</tr>
+</table>
 
-```bash
-go test ./...
+---
+
+## Development
+
+### Project Structure
+
 ```
-
-**Configuration**
-
-Edit `ai-resolver/.env`:
-```env
-# Blockchain Configuration
-RPC_URL=https://bsc-testnet.publicnode.com
-PRIVATE_KEY=your_signer_private_key
-
-# Contract Addresses (from deployment)
-MARKET_FACTORY_ADDRESS=0x...
-RESOLUTION_MODULE_ADDRESS=0x...
-AI_ORACLE_ADAPTER_ADDRESS=0x...
-
-# API Keys
-OPENAI_API_KEY=your_openai_key
-SEARCH_API_KEY=your_search_api_key
-
-# Server Configuration
-PORT=8080
+project_gamma/
+│
+├── contracts/              Smart contracts and tests
+│   ├── src/               Contract source files
+│   ├── test/              Unit and integration tests
+│   ├── script/            Deployment scripts
+│   └── docs/              Contract documentation
+│
+├── ai-resolver/           AI resolution service
+│   ├── cmd/              Application entry points
+│   ├── internal/         Internal packages
+│   └── pkg/              Public packages
+│
+└── README.md             This file
 ```
 
 ### Creating New Smart Contracts
 
-This guide walks you through creating and testing new smart contracts using Foundry's built-in EVM.
+<details>
+<summary><strong>Step-by-Step Guide</strong></summary>
 
-**Step 1: Create the Contract**
-
-Create a new contract file in `contracts/src/`:
+**Step 1: Create Contract File**
 
 ```bash
 cd contracts/src
 touch MyNewContract.sol
 ```
 
-Example contract structure:
+**Step 2: Implement Contract**
 
 ```solidity
 // SPDX-License-Identifier: MIT
@@ -309,18 +424,14 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 contract MyNewContract is Ownable, ReentrancyGuard {
-    // State variables
     uint256 public myValue;
     
-    // Events
     event ValueUpdated(uint256 oldValue, uint256 newValue);
     
-    // Constructor
     constructor(uint256 initialValue) Ownable(msg.sender) {
         myValue = initialValue;
     }
     
-    // Functions
     function updateValue(uint256 newValue) external onlyOwner {
         uint256 oldValue = myValue;
         myValue = newValue;
@@ -329,363 +440,164 @@ contract MyNewContract is Ownable, ReentrancyGuard {
 }
 ```
 
-**Step 2: Create the Test File**
-
-Create a test file in `contracts/test/unit/`:
+**Step 3: Create Tests**
 
 ```bash
 cd contracts/test/unit
 touch MyNewContract.t.sol
 ```
 
-Example test structure:
-
-```solidity
-// SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
-
-import "forge-std/Test.sol";
-import "../../src/MyNewContract.sol";
-
-contract MyNewContractTest is Test {
-    MyNewContract public myContract;
-    address public owner;
-    address public user;
-    
-    function setUp() public {
-        owner = address(this);
-        user = makeAddr("user");
-        
-        // Deploy contract
-        myContract = new MyNewContract(100);
-    }
-    
-    function test_InitialValue() public {
-        assertEq(myContract.myValue(), 100);
-    }
-    
-    function test_UpdateValue() public {
-        // Expect event emission
-        vm.expectEmit(true, true, true, true);
-        emit MyNewContract.ValueUpdated(100, 200);
-        
-        // Update value
-        myContract.updateValue(200);
-        
-        // Assert new value
-        assertEq(myContract.myValue(), 200);
-    }
-    
-    function test_UpdateValue_OnlyOwner() public {
-        // Prank as non-owner
-        vm.prank(user);
-        
-        // Expect revert
-        vm.expectRevert();
-        myContract.updateValue(300);
-    }
-    
-    function testFuzz_UpdateValue(uint256 randomValue) public {
-        myContract.updateValue(randomValue);
-        assertEq(myContract.myValue(), randomValue);
-    }
-}
-```
-
-**Step 3: Compile the Contract**
+**Step 4: Compile and Test**
 
 ```bash
-cd contracts
 forge build
-```
-
-If compilation fails, check for:
-- Correct Solidity version pragma
-- Missing imports
-- Syntax errors
-
-**Step 4: Run Tests**
-
-Run your specific test file:
-
-```bash
 forge test --match-contract MyNewContractTest
-```
-
-Run with verbosity to see detailed output:
-
-```bash
-forge test --match-contract MyNewContractTest -vvvv
-```
-
-Run with gas reporting:
-
-```bash
-forge test --match-contract MyNewContractTest --gas-report
-```
-
-**Step 5: Test Coverage**
-
-Generate coverage for your contract:
-
-```bash
 forge coverage --match-contract MyNewContract
 ```
 
-Aim for >95% coverage on all new contracts.
+</details>
 
-**Step 6: Integration Testing**
+### Testing Strategy
 
-Create integration tests in `contracts/test/integration/`:
+<table>
+<tr>
+<td width="33%" align="center">
 
-```solidity
-// SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+**Unit Tests**
 
-import "forge-std/Test.sol";
-import "../../src/MyNewContract.sol";
-import "../../src/MarketFactory.sol";
-
-contract MyNewContractIntegrationTest is Test {
-    MyNewContract public myContract;
-    MarketFactory public factory;
-    
-    function setUp() public {
-        // Deploy all required contracts
-        myContract = new MyNewContract(100);
-        factory = new MarketFactory(/* params */);
-    }
-    
-    function test_IntegrationWithFactory() public {
-        // Test interaction between contracts
-    }
-}
-```
-
-**Understanding Foundry's EVM**
-
-Foundry uses an isolated EVM instance for each test:
-
-- **Clean State**: Each test starts with a fresh blockchain state
-- **No Docker Required**: Foundry's EVM runs natively in your test process
-- **Fast Execution**: Tests run in milliseconds without network latency
-- **Cheatcodes**: Use `vm.*` functions to manipulate EVM state
-
-**Common Foundry Cheatcodes**
-
-```solidity
-// Time manipulation
-vm.warp(block.timestamp + 1 days);  // Fast forward time
-vm.roll(block.number + 100);        // Fast forward blocks
-
-// Identity manipulation
-vm.prank(address);                  // Next call from address
-vm.startPrank(address);             // All calls from address
-vm.stopPrank();                     // Stop pranking
-
-// Expectation
-vm.expectRevert();                  // Expect next call to revert
-vm.expectEmit(true, true, true, true);  // Expect event
-
-// Balance manipulation
-vm.deal(address, 100 ether);        // Give address ETH
-
-// Storage manipulation
-vm.store(address, slot, value);     // Write to storage slot
-```
-
-**Best Practices**
-
-1. **Test Structure**
-   - Use `setUp()` for common initialization
-   - One assertion per test when possible
-   - Use descriptive test names: `test_FunctionName_Scenario()`
-
-2. **Coverage Goals**
-   - Unit tests: Test each function independently
-   - Integration tests: Test contract interactions
-   - Edge cases: Test boundary conditions
-   - Fuzz tests: Test with random inputs
-
-3. **Gas Optimization**
-   - Run `forge test --gas-report` regularly
-   - Optimize high-frequency functions
-   - Use `forge snapshot` to track gas changes
-
-4. **Documentation**
-   - Add NatSpec comments to all public functions
-   - Document complex logic inline
-   - Keep README updated with new contracts
-
-**Debugging Failed Tests**
-
-If a test fails:
-
-1. Run with maximum verbosity:
-   ```bash
-   forge test --match-test test_MyFailingTest -vvvv
-   ```
-
-2. Check the trace for:
-   - Revert reasons
-   - Unexpected state changes
-   - Gas issues
-
-3. Use `console.log()` for debugging:
-   ```solidity
-   import "forge-std/console.sol";
-   
-   function test_Debug() public {
-       console.log("Value:", myContract.myValue());
-   }
-   ```
-
-**Running All Tests**
-
-Before committing, always run the full test suite:
+Test individual contract functionality in isolation
 
 ```bash
-forge test
-```
-
-Expected output:
-```
-[PASS] test_Function1() (gas: 12345)
-[PASS] test_Function2() (gas: 23456)
-Test result: ok. 252 passed; 0 failed; finished in 2.34s
-```
-
-## Testing
-
-### Unit Tests
-
-Test individual contract functionality:
-
-```bash
-cd contracts
 forge test --match-path "test/unit/*.sol"
 ```
 
-### Integration Tests
+</td>
+<td width="33%" align="center">
 
-Test complete workflows:
+**Integration Tests**
+
+Test complete workflows and contract interactions
 
 ```bash
 forge test --match-path "test/integration/*.sol"
 ```
 
-### Test Coverage
+</td>
+<td width="33%" align="center">
 
-Generate coverage report:
+**Coverage Analysis**
+
+Maintain >95% test coverage
 
 ```bash
 forge coverage
 ```
 
-### Gas Optimization
+</td>
+</tr>
+</table>
 
-Analyze gas usage:
+### Foundry Cheatcodes Reference
 
-```bash
-forge test --gas-report
+<details>
+<summary><strong>Common Testing Utilities</strong></summary>
+
+```solidity
+// Time manipulation
+vm.warp(block.timestamp + 1 days);
+vm.roll(block.number + 100);
+
+// Identity manipulation
+vm.prank(address);
+vm.startPrank(address);
+vm.stopPrank();
+
+// Expectations
+vm.expectRevert();
+vm.expectEmit(true, true, true, true);
+
+// Balance manipulation
+vm.deal(address, 100 ether);
 ```
 
-### Specific Test Patterns
+</details>
 
-Run tests matching a pattern:
-
-```bash
-forge test --match-test "testBuyYes"
-forge test --match-contract "MarketAMMTest"
-```
-
-### Verbose Output
-
-Debug test failures:
-
-```bash
-forge test -vvvv
-```
+---
 
 ## Deployment
 
-### Testnet Deployment (BSC Testnet)
+### Testnet Deployment
 
-**1. Configure Environment**
-
-Ensure `.env` is properly configured with testnet RPC URL and a funded wallet.
-
-**2. Deploy Contracts**
+**BNB Chain Testnet**
 
 ```bash
 cd contracts
-forge script script/Deploy.s.sol --rpc-url bsc_testnet --broadcast --verify
+forge script script/Deploy.s.sol \
+    --rpc-url bsc_testnet \
+    --broadcast \
+    --verify
 ```
 
-**3. Save Deployment Addresses**
+### Mainnet Deployment
 
-The script will output deployed contract addresses. Save these for AI resolver configuration.
+**Pre-Deployment Checklist**
 
-**4. Verify Contracts (if not auto-verified)**
-
-```bash
-forge verify-contract <ADDRESS> <CONTRACT_NAME> --chain bsc-testnet
-```
-
-### Mainnet Deployment (BSC Mainnet)
-
-**Security Checklist**
-- [ ] All tests passing
+- [ ] All tests passing with >95% coverage
 - [ ] Security audit completed
 - [ ] Deployment script reviewed
-- [ ] Multi-sig wallet configured (if applicable)
-- [ ] Sufficient BNB for deployment gas
-- [ ] `.env` points to mainnet RPC
-- [ ] Private key for deployment wallet is secure
+- [ ] Multi-sig wallet configured
+- [ ] Sufficient BNB for gas fees
+- [ ] Environment configured for mainnet
+- [ ] Private keys secured
 
-**Deploy to Mainnet**
+**Deploy to Production**
 
 ```bash
-forge script script/Deploy.s.sol --rpc-url bsc_mainnet --broadcast --verify
+forge script script/Deploy.s.sol \
+    --rpc-url bsc_mainnet \
+    --broadcast \
+    --verify
 ```
 
-**Post-Deployment**
-1. Transfer ownership to multi-sig (if applicable)
+**Post-Deployment Steps**
+
+1. Transfer ownership to multi-sig wallet
 2. Configure AI resolver signers
 3. Set initial fee parameters
-4. Test with small trades before public announcement
+4. Verify all contracts on BscScan
+5. Test with small trades before public launch
 
-### Deployment Script Details
-
-The deployment script (`Deploy.s.sol`) performs the following operations:
-
-1. Deploy `HorizonToken` (if not already deployed)
-2. Deploy `OutcomeToken`
-3. Deploy `FeeSplitter` with protocol treasury address
-4. Deploy `HorizonPerks` with default fee tiers
-5. Deploy `AIOracleAdapter` with initial signers
-6. Deploy `ResolutionModule`
-7. Deploy `MarketFactory`
-8. Configure authorizations between contracts
-9. Output all contract addresses
+---
 
 ## Documentation
 
-### Contract Documentation
+### Developer Resources
 
-- [Contracts README](./contracts/README.md) - Detailed contract specifications
-- [Deployment Guide](./contracts/docs/DEPLOYMENT.md) - Step-by-step deployment instructions
-- [Security Considerations](./contracts/docs/SECURITY.md) - Security best practices and considerations
-- [Roles & Permissions](./contracts/docs/ROLES.md) - Access control documentation
+<table>
+<tr>
+<td width="50%">
 
-### AI Resolver Documentation
+**Smart Contracts**
+- [Contract Specifications](./contracts/README.md)
+- [Deployment Guide](./contracts/docs/DEPLOYMENT.md)
+- [Security Considerations](./contracts/docs/SECURITY.md)
+- [Roles & Permissions](./contracts/docs/ROLES.md)
 
-- [AI Resolver README](./ai-resolver/README.md) - Backend service architecture and API
-- [Resolution Pipeline](./ai-resolver/docs/PIPELINE.md) - Evidence gathering and analysis process
+</td>
+<td width="50%">
+
+**AI Resolver**
+- [Backend Architecture](./ai-resolver/README.md)
+- [Resolution Pipeline](./ai-resolver/docs/PIPELINE.md)
+- API Documentation (Coming Soon)
+
+</td>
+</tr>
+</table>
 
 ### API Documentation
 
-Generated documentation available after running:
+Generate and serve contract documentation:
 
 ```bash
 cd contracts
@@ -694,7 +606,43 @@ forge doc --serve
 
 Access at `http://localhost:3000`
 
+---
+
 ## Security
+
+### Security Architecture
+
+<table>
+<tr>
+<td width="33%">
+
+**Smart Contract Security**
+- OpenZeppelin libraries
+- ReentrancyGuard protection
+- Pausable emergency stops
+- Comprehensive test coverage
+
+</td>
+<td width="33%">
+
+**Cryptographic Security**
+- EIP-712 typed signatures
+- Evidence hash validation
+- Multi-signer redundancy
+- Signature expiration windows
+
+</td>
+<td width="33%">
+
+**Operational Security**
+- Hardware wallet support
+- Multi-sig admin functions
+- Environment isolation
+- Regular key rotation
+
+</td>
+</tr>
+</table>
 
 ### Best Practices
 
@@ -702,146 +650,158 @@ Access at `http://localhost:3000`
 - Never commit private keys to version control
 - Use hardware wallets for mainnet deployments
 - Implement multi-sig for admin functions
-- Rotate keys regularly
+- Maintain separate keys for testnet and mainnet
 
 **Environment Configuration**
 - All sensitive data in `.env` files (gitignored)
-- Use separate keys for testnet and mainnet
-- Review `.env.example` for required variables
 - Validate environment before deployment
-
-**Smart Contract Security**
-- Contracts use OpenZeppelin battle-tested libraries
-- ReentrancyGuard on all state-changing functions
-- Pausable functionality for emergency stops
-- EIP-712 signatures for off-chain/on-chain verification
-- Comprehensive test coverage (>95%)
-
-**AI Resolver Security**
-- Multi-signer support for redundancy
-- Evidence hash validation
-- Signature expiration (24-hour window)
-- Rate limiting on proposal submissions
-- Secure key storage
+- Use different keys per network
+- Review `.env.example` for required variables
 
 ### Audit Status
 
-**Current Status**: Pre-audit
+| Phase | Status |
+|-------|--------|
+| Internal Security Review | ✓ Completed |
+| External Audit | Scheduled |
+| Bug Bounty Program | Planned Post-Launch |
 
-**Planned Audits**
-- Internal security review: Completed
-- External audit: Scheduled
-- Bug bounty program: Planned post-launch
+### Reporting Vulnerabilities
 
-### Reporting Security Issues
+To report security issues, please use GitHub's security advisory feature or open an issue with the `security` label.
 
-To report security vulnerabilities, please submit an issue on GitHub with the label `security`. 
-
-For sensitive disclosures, you can also reach out directly through GitHub's security advisory feature.
-
-## Project Structure
-
-```
-project_gamma/
-├── contracts/              # Smart contracts
-│   ├── src/               # Contract source files
-│   │   ├── MarketFactory.sol
-│   │   ├── MarketAMM.sol
-│   │   ├── ResolutionModule.sol
-│   │   ├── AIOracleAdapter.sol
-│   │   ├── OutcomeToken.sol
-│   │   ├── FeeSplitter.sol
-│   │   ├── HorizonPerks.sol
-│   │   └── HorizonToken.sol
-│   ├── test/              # Test files
-│   │   ├── unit/         # Unit tests
-│   │   └── integration/  # Integration tests
-│   ├── script/            # Deployment scripts
-│   │   └── Deploy.s.sol
-│   ├── docs/              # Contract documentation
-│   └── foundry.toml       # Foundry configuration
-├── ai-resolver/           # AI resolution service
-│   ├── cmd/              # Application entry points
-│   │   └── server/
-│   ├── internal/         # Internal packages
-│   │   ├── ai/          # LLM integration
-│   │   ├── blockchain/  # Chain interaction
-│   │   ├── evidence/    # Evidence gathering
-│   │   └── signature/   # EIP-712 signing
-│   ├── pkg/              # Public packages
-│   └── go.mod
-└── README.md             # This file
-```
-
-## Contributing
-
-We welcome contributions to Project Gamma. Please follow these guidelines:
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-### Development Guidelines
-
-**Smart Contracts**
-- Follow Solidity style guide
-- Maintain test coverage above 95%
-- Document all public functions with NatSpec
-- Run `forge fmt` before committing
-
-**Go Code**
-- Follow Go best practices
-- Add unit tests for new functionality
-- Use meaningful variable names
-- Run `go fmt` before committing
-
-## License
-
-This project is licensed under the MIT License. See [LICENSE](./LICENSE) file for details.
-
-## Support
-
-For questions, issues, or contributions:
-
-- Open a [GitHub Issue](https://github.com/yourusername/project_gamma/issues)
-- Join our [Discord community](https://discord.gg/projectgamma) (coming soon)
-- Read the [Documentation](./contracts/README.md)
-
-## Acknowledgments
-
-Built with:
-- [Foundry](https://github.com/foundry-rs/foundry) - Ethereum development toolkit
-- [OpenZeppelin](https://github.com/OpenZeppelin/openzeppelin-contracts) - Secure smart contract library
-- [Go Ethereum](https://github.com/ethereum/go-ethereum) - Go implementation of Ethereum
-- [OpenAI](https://openai.com/) - AI capabilities
+---
 
 ## Roadmap
 
-**Phase 1: Core Platform** (Current)
-- Smart contract deployment
-- Basic AI resolver
-- Testnet launch
+### Phase 1: Core Platform
 
-**Phase 2: Enhancement**
+**Current Focus**
+
+- Smart contract deployment on BNB Chain
+- Basic AI resolver implementation
+- Testnet launch and initial testing
+
+### Phase 2: Enhancement
+
+**Q2 2025**
+
 - X402 payment gateway integration
 - Decentralized application (dApp) interface
-- Custom AI tool registry using Response API (BSCScan, PancakeSwap TWAP for real-time on-chain data)
+- Custom AI tool registry using Response API
 - Expanded market mechanics:
-  - MultiChoiceMarket - Support for 3-8 discrete outcomes
-  - LimitOrderMarket - Professional trading with order matching
-  - PooledLiquidityMarket - Enhanced AMM with concentrated liquidity
-  - DependentMarket - Outcomes that trigger related market settlements
-  - BracketMarket - Predictions within defined value ranges
-  - TrendMarket - Time-weighted outcome predictions
+  - MultiChoiceMarket (3-8 discrete outcomes)
+  - LimitOrderMarket (professional trading)
+  - PooledLiquidityMarket (concentrated liquidity)
+  - DependentMarket (cascading settlements)
+  - BracketMarket (range predictions)
+  - TrendMarket (time-weighted outcomes)
 
-**Phase 3: Developer Tools**
+### Phase 3: Developer Tools
+
+**Q3 2025**
+
 - React SDK for market integration
-- Boilerplate templates for building markets with full SDK integration
-- Developer documentation and API reference
+- Boilerplate templates with full SDK
+- Comprehensive API documentation
+- Developer tutorials and guides
 
-**Phase 4: Governance & Ecosystem**
-- HORIZON token governance
-- Community proposals and protocol parameter voting
+### Phase 4: Governance & Ecosystem
+
+**Q4 2025**
+
+- HORIZON token governance launch
+- Community proposals system
+- Protocol parameter voting
 - Third-party integrations and partnerships
+
+---
+
+## Contributing
+
+We welcome contributions from the community. Please follow our development guidelines:
+
+### Contribution Workflow
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Make your changes with tests
+4. Ensure all tests pass (`forge test`)
+5. Format your code (`forge fmt` or `go fmt`)
+6. Commit your changes (`git commit -m 'Add amazing feature'`)
+7. Push to the branch (`git push origin feature/amazing-feature`)
+8. Open a Pull Request
+
+### Development Standards
+
+<table>
+<tr>
+<td width="50%">
+
+**Smart Contracts**
+- Follow Solidity style guide
+- Maintain >95% test coverage
+- Document with NatSpec comments
+- Run formatter before committing
+
+</td>
+<td width="50%">
+
+**Go Code**
+- Follow Go best practices
+- Add unit tests for new features
+- Use meaningful variable names
+- Run `go fmt` before committing
+
+</td>
+</tr>
+</table>
+
+---
+
+## Technology Stack
+
+<div align="center">
+
+**Built With Industry-Leading Tools**
+
+[![Foundry](https://img.shields.io/badge/Foundry-Ethereum%20Toolkit-black?style=for-the-badge)](https://github.com/foundry-rs/foundry)
+[![OpenZeppelin](https://img.shields.io/badge/OpenZeppelin-Smart%20Contracts-4E5EE4?style=for-the-badge)](https://github.com/OpenZeppelin/openzeppelin-contracts)
+[![Go Ethereum](https://img.shields.io/badge/Go%20Ethereum-Blockchain-00ADD8?style=for-the-badge)](https://github.com/ethereum/go-ethereum)
+[![OpenAI](https://img.shields.io/badge/OpenAI-AI%20Resolution-412991?style=for-the-badge)](https://openai.com/)
+
+</div>
+
+---
+
+## License
+
+This project is licensed under the MIT License. See the [LICENSE](./LICENSE) file for details.
+
+---
+
+## Support & Community
+
+<div align="center">
+
+**Get Help and Stay Connected**
+
+[![Website](https://img.shields.io/badge/🌐-horizonoracles.com-blue?style=for-the-badge)](https://horizonoracles.com/)
+[![Twitter](https://img.shields.io/badge/Twitter-@HorizonOracles-1DA1F2?style=for-the-badge&logo=twitter)](https://x.com/HorizonOracles)
+[![GitHub Issues](https://img.shields.io/badge/GitHub-Issues-181717?style=for-the-badge&logo=github)](https://github.com/yourusername/project_gamma/issues)
+
+For questions, feature requests, or bug reports, please open a GitHub issue or reach out on Twitter.
+
+</div>
+
+---
+
+<div align="center">
+
+**Project Gamma** • Decentralized Prediction Markets Powered by AI
+
+Built on BNB Chain with ❤️ by the Horizon Oracles Team
+
+[horizonoracles.com](https://horizonoracles.com/) • [@HorizonOracles](https://x.com/HorizonOracles)
+
+</div>
