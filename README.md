@@ -9,7 +9,8 @@
 [![Website](https://img.shields.io/badge/Website-horizonoracles.com-blue?style=flat-square)](https://horizonoracles.com/)
 [![Twitter](https://img.shields.io/badge/Twitter-@HorizonOracles-1DA1F2?style=flat-square&logo=twitter)](https://x.com/HorizonOracles)
 [![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
-[![BNB Chain](https://img.shields.io/badge/Built%20on-BNB%20Chain-F0B90B?style=flat-square)](https://www.bnbchain.org/)
+
+[![BNB Chain](assets/bnb-chain-full-binance-smart-chain-logo-1-1024x180.png)](https://www.bnbchain.org/)
 
 *Combining on-chain trading with AI-powered resolution for transparent, automated prediction markets*
 
