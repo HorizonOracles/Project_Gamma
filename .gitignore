@@ -11,6 +11,9 @@ logs/
 ai-resolver/bin/
 ai-resolver/ai-resolver
 ai-resolver/ai-resolver-*
+ai-resolver/main
+ai-resolver/server
+contracts/src/compileoutput.txt
 *.exe
 
 # IDE
