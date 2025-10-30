@@ -1,13 +1,72 @@
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnpm-store/
+
+# Build outputs
+dist/
+build/
+*.tsbuildinfo
+
+# Test coverage
+coverage/
+*.lcov
+.nyc_output/
+
 # Environment files
 .env
 .env.local
+.env.*.local
 *.env
 
 # Logs
 *.log
 logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
 
-# Build artifacts
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+*.sublime-project
+*.sublime-workspace
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# Temporary files
+*.tmp
+*.temp
+*.cache
+.cache/
+.temp/
+
+# Project-specific temporary files
+plan.md
+PROGRESS.md
+implementation-roadmap.md
+deploy_local.sh
+setup-git-user.sh
+
+# AI agent documentation (internal use only)
+.ai/
+
+# Build artifacts (ai-resolver)
 ai-resolver/bin/
 ai-resolver/ai-resolver
 ai-resolver/ai-resolver-*
@@ -16,24 +75,10 @@ ai-resolver/server
 contracts/src/compileoutput.txt
 *.exe
 
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
+# TypeScript
+*.tsbuildinfo
 
-# OS
-.DS_Store
-Thumbs.db
-
-# Temporary files
-*.tmp
-*.temp
-plan.md
-PROGRESS.md
-implementation-roadmap.md
-deploy_local.sh
-
-# AI agent documentation (internal use only)
-.ai/
+# Package manager lock files (optional - uncomment if you want to ignore)
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml

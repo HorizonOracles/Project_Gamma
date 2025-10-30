@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "types": ["vitest/globals", "node", "@testing-library/jest-dom"],
+    "moduleResolution": "bundler"
+  },
+  "include": ["src/**/*.test.ts", "src/**/*.test.tsx", "src/test/**/*", "vitest.config.ts"],
+  "exclude": []
+}
+
