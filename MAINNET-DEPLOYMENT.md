@@ -8,11 +8,11 @@
 [![Status](https://img.shields.io/badge/Status-Live-success?style=flat-square)]()
 [![Verified](https://img.shields.io/badge/Contracts-Verified-blue?style=flat-square)](https://bscscan.com/)
 
-*Successfully deployed on October 29, 2025*
+*Successfully deployed on October 30, 2025*
 
 ---
 
-**Chain ID:** 56 • **Total Gas Cost:** 0.000624 BNB (~$0.39 USD)
+**Chain ID:** 56 • **Total Gas Cost:** 0.00057424175 BNB (~$0.35 USD)
 
 ---
 
@@ -20,7 +20,7 @@
 
 ## Deployment Summary
 
-Project Gamma has been successfully deployed to BNB Chain mainnet. All 7 core contracts are live, verified, and operational.
+Project Gamma has been successfully deployed to BNB Chain mainnet. All 6 core contracts are live and operational.
 
 ### Deployment Statistics
 
@@ -30,28 +30,28 @@ Project Gamma has been successfully deployed to BNB Chain mainnet. All 7 core co
 
 **Total Contracts**
 
-7 contracts
+6 contracts deployed
 
 </td>
 <td width="25%" align="center">
 
 **Total Gas Used**
 
-12,372,541 gas
+11,484,835 gas
 
 </td>
 <td width="25%" align="center">
 
 **Total Cost**
 
-0.000624 BNB
+0.00057424175 BNB
 
 </td>
 <td width="25%" align="center">
 
 **Avg Gas Price**
 
-0.0504 gwei
+0.05 gwei
 
 </td>
 </tr>
@@ -80,17 +80,17 @@ Project Gamma has been successfully deployed to BNB Chain mainnet. All 7 core co
 </tr>
 <tr>
 <td><strong>OutcomeToken</strong></td>
-<td><code>0x72F84681AA0dc8DB53E87eD507A4D6651B1C312D</code></td>
-<td>66328650</td>
+<td><code>0x17B322784265c105a94e4c3d00aF1E5f46a5F311</code></td>
+<td>66439956</td>
 <td>1,718,990</td>
-<td><a href="https://bscscan.com/address/0x72F84681AA0dc8DB53E87eD507A4D6651B1C312D">View</a></td>
+<td><a href="https://bscscan.com/address/0x17B322784265c105a94e4c3d00aF1E5f46a5F311">View</a></td>
 </tr>
 <tr>
 <td><strong>HorizonPerks</strong></td>
-<td><code>0x31709748Cc9030e86E71570442fa762c851950b3</code></td>
-<td>66328654</td>
+<td><code>0x71Ff73A5a43B479a2D549a34dE7d3eadB9A1E22C</code></td>
+<td>66439956</td>
 <td>1,354,764</td>
-<td><a href="https://bscscan.com/address/0x31709748Cc9030e86E71570442fa762c851950b3">View</a></td>
+<td><a href="https://bscscan.com/address/0x71Ff73A5a43B479a2D549a34dE7d3eadB9A1E22C">View</a></td>
 </tr>
 </table>
 
@@ -106,24 +106,24 @@ Project Gamma has been successfully deployed to BNB Chain mainnet. All 7 core co
 </tr>
 <tr>
 <td><strong>FeeSplitter</strong></td>
-<td><code>0x7CB3A3C58f7eA49CC6AF8Be5228ac58b04787B09</code></td>
-<td>66328658</td>
+<td><code>0x275017E98adF33051BbF477fe1DD197F681d4eF1</code></td>
+<td>66439956</td>
 <td>975,952</td>
-<td><a href="https://bscscan.com/address/0x7CB3A3C58f7eA49CC6AF8Be5228ac58b04787B09">View</a></td>
+<td><a href="https://bscscan.com/address/0x275017E98adF33051BbF477fe1DD197F681d4eF1">View</a></td>
 </tr>
 <tr>
 <td><strong>ResolutionModule</strong></td>
-<td><code>0x5407F3937C81A01E783B9E99fbAC624220a534Eb</code></td>
-<td>66328663</td>
-<td>1,226,176</td>
-<td><a href="https://bscscan.com/address/0x5407F3937C81A01E783B9E99fbAC624220a534Eb">View</a></td>
+<td><code>0xF0CF4C741910cB48AC596F620a0AE892Cd247838</code></td>
+<td>66439956</td>
+<td>1,226,164</td>
+<td><a href="https://bscscan.com/address/0xF0CF4C741910cB48AC596F620a0AE892Cd247838">View</a></td>
 </tr>
 <tr>
 <td><strong>AIOracleAdapter</strong></td>
-<td><code>0x30827513096b63F09C0c24f574933b43e222C5D7</code></td>
-<td>66328676</td>
+<td><code>0x8773B8C5a55390DAbAD33dB46a13cd59Fb05cF93</code></td>
+<td>66439956</td>
 <td>1,074,749</td>
-<td><a href="https://bscscan.com/address/0x30827513096b63F09C0c24f574933b43e222C5D7">View</a></td>
+<td><a href="https://bscscan.com/address/0x8773B8C5a55390DAbAD33dB46a13cd59Fb05cF93">View</a></td>
 </tr>
 </table>
 
@@ -139,10 +139,10 @@ Project Gamma has been successfully deployed to BNB Chain mainnet. All 7 core co
 </tr>
 <tr>
 <td><strong>MarketFactory</strong></td>
-<td><code>0xf3f68A76D42679E8b3371bC26B75F7F26E97A10C</code></td>
-<td>66328680</td>
-<td>4,944,054</td>
-<td><a href="https://bscscan.com/address/0xf3f68A76D42679E8b3371bC26B75F7F26E97A10C">View</a></td>
+<td><code>0x22Cc806047BB825aa26b766Af737E92B1866E8A6</code></td>
+<td>66439956</td>
+<td>4,944,042</td>
+<td><a href="https://bscscan.com/address/0x22Cc806047BB825aa26b766Af737E92B1866E8A6">View</a></td>
 </tr>
 </table>
 
@@ -191,9 +191,9 @@ All administrative roles are currently assigned to the deployer address. These w
 <td width="50%">
 
 **Token Economics**
-- HORIZON Initial Supply: 100,000,000 tokens
-- HORIZON Max Supply: 10,000,000,000 tokens
+- HORIZON Token Address: [`0x5b2ba38...14444`](https://bscscan.com/address/0x5b2ba38272125bd1dcde41f1a88d98c2f5c14444)
 - Token Standard: ERC-20
+- Deployer Balance: 936,102 HORIZON
 
 </td>
 <td width="50%">
@@ -220,9 +220,9 @@ All administrative roles are currently assigned to the deployer address. These w
 <td width="50%">
 
 **Fee Structure**
-- Trading Fee Range: 1.0% - 4.0%
-- Protocol Share: 2-10%
-- LP Fee: 0.3% (standard AMM)
+- User Trading Fee: 2% (constant)
+- Protocol Share: 2-10% (based on HORIZON holdings)
+- Creator Share: 90-98% (inverse of protocol)
 
 </td>
 </tr>
@@ -232,7 +232,7 @@ All administrative roles are currently assigned to the deployer address. These w
 
 ## Deployment Timeline
 
-### Phase 1: Core Tokens
+### Phase 1: Token Setup
 
 <table>
 <tr>
@@ -243,20 +243,14 @@ All administrative roles are currently assigned to the deployer address. These w
 </tr>
 <tr>
 <td>1</td>
-<td>HorizonToken</td>
-<td><code>0x2d10af367244204f000f42952e41348284116692...</code></td>
-<td>✅ Deployed</td>
+<td>HorizonToken (Existing)</td>
+<td>Pre-deployed</td>
+<td>✅ Verified</td>
 </tr>
 <tr>
 <td>2</td>
 <td>OutcomeToken</td>
-<td><code>0x9bedb89923809a016446998cd20d5377383665b8...</code></td>
-<td>✅ Deployed</td>
-</tr>
-<tr>
-<td>3</td>
-<td>HorizonPerks</td>
-<td><code>0xbaedffa08d46096cb2d080de3ee45d9c613d985a...</code></td>
+<td><code><a href="https://bscscan.com/tx/0xd52063417ad512de422656619325e85cea1517052bc603b507e5b7d1e2f4e9ea">0xd520634...</a></code></td>
 <td>✅ Deployed</td>
 </tr>
 </table>
@@ -271,27 +265,39 @@ All administrative roles are currently assigned to the deployer address. These w
 <th>Status</th>
 </tr>
 <tr>
+<td>3</td>
+<td>HorizonPerks</td>
+<td><code><a href="https://bscscan.com/tx/0x3a7bbf00a3d7d73aac8cdf546ade2a55f071a4008d740a63afd11e9972adbbb0">0x3a7bbf0...</a></code></td>
+<td>✅ Deployed</td>
+</tr>
+<tr>
 <td>4</td>
 <td>FeeSplitter</td>
-<td><code>0x9205ca5ca50f4fe878cd470d417936338ef2550d...</code></td>
+<td><code><a href="https://bscscan.com/tx/0x9a772d2b93dbef65131d2d08b56e2ac41a41f66c253bd3608ab583cd228776d4">0x9a772d2...</a></code></td>
 <td>✅ Deployed</td>
 </tr>
 <tr>
 <td>5</td>
 <td>ResolutionModule</td>
-<td><code>0xef98b31b89d3e4007ed62361fd77fd48ef4c79fc...</code></td>
+<td><code><a href="https://bscscan.com/tx/0xb1330e880683a8aa0091761d046c6b51d4f7e50e55d6035f44231d1348afd488">0xb1330e8...</a></code></td>
 <td>✅ Deployed</td>
 </tr>
 <tr>
 <td>6</td>
-<td>Resolution Config</td>
-<td><code>0x72b5a2897a26dae2ee0a1bf2b83ce0f1757dcab1...</code></td>
+<td>Resolution Config (MinBond)</td>
+<td><code><a href="https://bscscan.com/tx/0x7c0a741816646b3d6090cea0a4746e4e2f874fb5c5fa66bf70490fb95af9e12e">0x7c0a741...</a></code></td>
 <td>✅ Configured</td>
 </tr>
 <tr>
 <td>7</td>
+<td>Resolution Config (DisputeWindow)</td>
+<td><code><a href="https://bscscan.com/tx/0xafc788634cd55d88ad0d7b004d8d315c6a81f99e3316821c55b930d13bd0c78e">0xafc7886...</a></code></td>
+<td>✅ Configured</td>
+</tr>
+<tr>
+<td>8</td>
 <td>AIOracleAdapter</td>
-<td><code>0xae3543c78f114ad1263836b6bcd076c2ba0a17bd...</code></td>
+<td><code><a href="https://bscscan.com/tx/0x194237682e46ed043baf6ddb5ecd63b12f62e83f7a955b9525aa37a49622bc95">0x1942376...</a></code></td>
 <td>✅ Deployed</td>
 </tr>
 </table>
@@ -306,15 +312,15 @@ All administrative roles are currently assigned to the deployer address. These w
 <th>Status</th>
 </tr>
 <tr>
-<td>8</td>
+<td>9</td>
 <td>MarketFactory</td>
-<td><code>0x8e3bc6782222cf620be274d1a6b9eed0e662b6e7...</code></td>
+<td><code><a href="https://bscscan.com/tx/0xb44037712ca3ad864ef7ea893792661fd31307ce0ab6169e5551e666ba74a0d7">0xb440377...</a></code></td>
 <td>✅ Deployed</td>
 </tr>
 <tr>
-<td>9</td>
+<td>10</td>
 <td>Creator Stake Config</td>
-<td><code>0x09eada7207ba843bfa7e84e9b658ad216cc6fabd...</code></td>
+<td><code><a href="https://bscscan.com/tx/0x990143c2265500f9c483f76ced54cdcf3a6c3558e372556760b79935003e02f8">0x990143c...</a></code></td>
 <td>✅ Configured</td>
 </tr>
 </table>
@@ -329,27 +335,21 @@ All administrative roles are currently assigned to the deployer address. These w
 <th>Status</th>
 </tr>
 <tr>
-<td>10</td>
-<td>Add MarketFactory as Minter</td>
-<td><code>0x9e25db8c0bd5b86e37476470b9b6aa9890806c68...</code></td>
-<td>✅ Authorized</td>
-</tr>
-<tr>
 <td>11</td>
 <td>Authorize Resolution Module</td>
-<td><code>0xfc8641a1b4fc4a71fdd40fa8772238f63a1de210...</code></td>
+<td><code><a href="https://bscscan.com/tx/0x9f6b4c439d41843acbfa3afefecfa3b36e26d21d926e7b9b8a7d46e24b204bde">0x9f6b4c4...</a></code></td>
 <td>✅ Authorized</td>
 </tr>
 <tr>
 <td>12</td>
 <td>Transfer OutcomeToken Ownership</td>
-<td><code>0x8d3b5fc580aab0d313835695a941c884245f3056...</code></td>
+<td><code><a href="https://bscscan.com/tx/0xa78333aa93fc8cea599221630594748a4ccf9c8a1307a0b5db8e327ea9a29642">0xa78333a...</a></code></td>
 <td>✅ Transferred</td>
 </tr>
 <tr>
 <td>13</td>
 <td>Transfer FeeSplitter Ownership</td>
-<td><code>0x08705150a51ed48f6bb5db0f038dd45104a67f07...</code></td>
+<td><code><a href="https://bscscan.com/tx/0xf365a291c3302a446bb0f3790ed50950088866eca19d52f052cd1d3f76f11a96">0xf365a29...</a></code></td>
 <td>✅ Transferred</td>
 </tr>
 </table>
@@ -360,59 +360,135 @@ All administrative roles are currently assigned to the deployer address. These w
 
 ### Contract Verification
 
-All contracts have been verified on BscScan:
+Contracts need to be verified on BscScan. Run these commands:
+
+<details>
+<summary><strong>Verification Commands</strong></summary>
+
+```bash
+# Set your API key
+export BSCSCAN_API_KEY=your_api_key_here
+
+# Verify OutcomeToken
+forge verify-contract \
+  --chain-id 56 \
+  --compiler-version 0.8.24 \
+  --num-of-optimizations 200 \
+  --watch \
+  --etherscan-api-key $BSCSCAN_API_KEY \
+  0x17B322784265c105a94e4c3d00aF1E5f46a5F311 \
+  src/OutcomeToken.sol:OutcomeToken \
+  --constructor-args $(cast abi-encode "constructor(string)" "https://horizon.markets/api/metadata/{id}.json")
+
+# Verify HorizonPerks
+forge verify-contract \
+  --chain-id 56 \
+  --compiler-version 0.8.24 \
+  --num-of-optimizations 200 \
+  --watch \
+  --etherscan-api-key $BSCSCAN_API_KEY \
+  0x71Ff73A5a43B479a2D549a34dE7d3eadB9A1E22C \
+  src/HorizonPerks.sol:HorizonPerks \
+  --constructor-args $(cast abi-encode "constructor(address)" "0x5b2bA38272125bd1dcDE41f1a88d98C2F5c14444")
+
+# Verify FeeSplitter
+forge verify-contract \
+  --chain-id 56 \
+  --compiler-version 0.8.24 \
+  --num-of-optimizations 200 \
+  --watch \
+  --etherscan-api-key $BSCSCAN_API_KEY \
+  0x275017E98adF33051BbF477fe1DD197F681d4eF1 \
+  src/FeeSplitter.sol:FeeSplitter \
+  --constructor-args $(cast abi-encode "constructor(address)" "0x68e25d4b1dA2e4FF3B1B1C28a190D890b46D9C66")
+
+# Verify ResolutionModule
+forge verify-contract \
+  --chain-id 56 \
+  --compiler-version 0.8.24 \
+  --num-of-optimizations 200 \
+  --watch \
+  --etherscan-api-key $BSCSCAN_API_KEY \
+  0xF0CF4C741910cB48AC596F620a0AE892Cd247838 \
+  src/ResolutionModule.sol:ResolutionModule \
+  --constructor-args $(cast abi-encode "constructor(address,address,address)" "0x17B322784265c105a94e4c3d00aF1E5f46a5F311" "0x5b2bA38272125bd1dcDE41f1a88d98C2F5c14444" "0x68e25d4b1dA2e4FF3B1B1C28a190D890b46D9C66")
+
+# Verify AIOracleAdapter
+forge verify-contract \
+  --chain-id 56 \
+  --compiler-version 0.8.24 \
+  --num-of-optimizations 200 \
+  --watch \
+  --etherscan-api-key $BSCSCAN_API_KEY \
+  0x8773B8C5a55390DAbAD33dB46a13cd59Fb05cF93 \
+  src/AIOracleAdapter.sol:AIOracleAdapter \
+  --constructor-args $(cast abi-encode "constructor(address,address,address)" "0xF0CF4C741910cB48AC596F620a0AE892Cd247838" "0x5b2bA38272125bd1dcDE41f1a88d98C2F5c14444" "0x68e25d4b1dA2e4FF3B1B1C28a190D890b46D9C66")
+
+# Verify MarketFactory
+forge verify-contract \
+  --chain-id 56 \
+  --compiler-version 0.8.24 \
+  --num-of-optimizations 200 \
+  --watch \
+  --etherscan-api-key $BSCSCAN_API_KEY \
+  0x22Cc806047BB825aa26b766Af737E92B1866E8A6 \
+  src/MarketFactory.sol:MarketFactory \
+  --constructor-args $(cast abi-encode "constructor(address,address,address,address)" "0x17B322784265c105a94e4c3d00aF1E5f46a5F311" "0x275017E98adF33051BbF477fe1DD197F681d4eF1" "0x71Ff73A5a43B479a2D549a34dE7d3eadB9A1E22C" "0x5b2bA38272125bd1dcDE41f1a88d98C2F5c14444")
+```
+
+</details>
 
 <table>
 <tr>
 <td width="25%" align="center">
 
-**✅ HorizonToken**
+**⏳ HorizonToken**
 
-Verified with source code
-
-</td>
-<td width="25%" align="center">
-
-**✅ OutcomeToken**
-
-Verified with source code
+Pre-deployed & verified
 
 </td>
 <td width="25%" align="center">
 
-**✅ HorizonPerks**
+**⏳ OutcomeToken**
 
-Verified with source code
+Pending verification
 
 </td>
 <td width="25%" align="center">
 
-**✅ FeeSplitter**
+**⏳ HorizonPerks**
 
-Verified with source code
+Pending verification
+
+</td>
+<td width="25%" align="center">
+
+**⏳ FeeSplitter**
+
+Pending verification
 
 </td>
 </tr>
 <tr>
 <td width="25%" align="center">
 
-**✅ ResolutionModule**
+**⏳ ResolutionModule**
 
-Verified with source code
-
-</td>
-<td width="25%" align="center">
-
-**✅ AIOracleAdapter**
-
-Verified with source code
+Pending verification
 
 </td>
 <td width="25%" align="center">
 
-**✅ MarketFactory**
+**⏳ AIOracleAdapter**
 
-Verified with source code
+Pending verification
+
+</td>
+<td width="25%" align="center">
+
+**⏳ MarketFactory**
+
+Pending verification
 
 </td>
 <td width="25%" align="center">
@@ -436,20 +512,26 @@ Copy these addresses to your `.env` file:
 ```bash
 # Network
 CHAIN_ID=56
-BSC_RPC_URL=https://bsc-dataseed.binance.org/
+RPC_URL=https://bsc-dataseed.binance.org/
 
 # Core Tokens
-HORIZON_TOKEN_ADDRESS=0x5b2ba38272125bd1dcde41f1a88d98c2f5c14444
-OUTCOME_TOKEN_ADDRESS=0x72F84681AA0dc8DB53E87eD507A4D6651B1C312D
-HORIZON_PERKS_ADDRESS=0x31709748Cc9030e86E71570442fa762c851950b3
+HORIZON_TOKEN_ADDRESS=0x5b2bA38272125bd1dcDE41f1a88d98C2F5c14444
+OUTCOME_TOKEN_ADDRESS=0x17B322784265c105a94e4c3d00aF1E5f46a5F311
+HORIZON_PERKS_ADDRESS=0x71Ff73A5a43B479a2D549a34dE7d3eadB9A1E22C
 
 # Protocol Infrastructure
-FEE_SPLITTER_ADDRESS=0x7CB3A3C58f7eA49CC6AF8Be5228ac58b04787B09
-RESOLUTION_MODULE_ADDRESS=0x5407F3937C81A01E783B9E99fbAC624220a534Eb
-AI_ORACLE_ADAPTER_ADDRESS=0x30827513096b63F09C0c24f574933b43e222C5D7
+FEE_SPLITTER_ADDRESS=0x275017E98adF33051BbF477fe1DD197F681d4eF1
+RESOLUTION_MODULE_ADDRESS=0xF0CF4C741910cB48AC596F620a0AE892Cd247838
+AI_ORACLE_ADAPTER_ADDRESS=0x8773B8C5a55390DAbAD33dB46a13cd59Fb05cF93
 
 # Market System
-MARKET_FACTORY_ADDRESS=0xf3f68A76D42679E8b3371bC26B75F7F26E97A10C
+MARKET_FACTORY_ADDRESS=0x22Cc806047BB825aa26b766Af737E92B1866E8A6
+
+# Admin
+PROTOCOL_OWNER=0x68e25d4b1dA2e4FF3B1B1C28a190D890b46D9C66
+PROTOCOL_TREASURY=0x68e25d4b1dA2e4FF3B1B1C28a190D890b46D9C66
+ARBITRATOR_ADDRESS=0x68e25d4b1dA2e4FF3B1B1C28a190D890b46D9C66
+AI_SIGNER_ADDRESS=0x68e25d4b1dA2e4FF3B1B1C28a190D890b46D9C66
 ```
 
 ### For AI Resolver Service
@@ -460,10 +542,10 @@ Update `ai-resolver/.env`:
 RPC_ENDPOINT=https://bsc-dataseed.binance.org
 CHAIN_ID=56
 
-AI_ORACLE_ADAPTER_ADDR=0x30827513096b63F09C0c24f574933b43e222C5D7
-MARKET_FACTORY_ADDR=0xf3f68A76D42679E8b3371bC26B75F7F26E97A10C
-RESOLUTION_MODULE_ADDR=0x5407F3937C81A01E783B9E99fbAC624220a534Eb
-HORIZON_TOKEN_ADDR=0x5b2ba38272125bd1dcde41f1a88d98c2f5c14444
+AI_ORACLE_ADAPTER_ADDR=0x8773B8C5a55390DAbAD33dB46a13cd59Fb05cF93
+MARKET_FACTORY_ADDR=0x22Cc806047BB825aa26b766Af737E92B1866E8A6
+RESOLUTION_MODULE_ADDR=0xF0CF4C741910cB48AC596F620a0AE892Cd247838
+HORIZON_TOKEN_ADDR=0x5b2bA38272125bd1dcDE41f1a88d98C2F5c14444
 ```
 
 ---
@@ -473,17 +555,16 @@ HORIZON_TOKEN_ADDR=0x5b2ba38272125bd1dcde41f1a88d98c2f5c14444
 ### Contract Initialization Events
 
 <details>
-<summary><strong>HorizonToken Events</strong></summary>
+<summary><strong>OutcomeToken Events</strong></summary>
 
 ```
 ✅ OwnershipTransferred
    previousOwner: 0x0000000000000000000000000000000000000000
    newOwner: 0x68e25d4b1dA2e4FF3B1B1C28a190D890b46D9C66
 
-✅ Transfer (Initial Mint)
-   from: 0x0000000000000000000000000000000000000000
-   to: 0x68e25d4b1dA2e4FF3B1B1C28a190D890b46D9C66
-   value: 100,000,000 HORIZON (1e26 wei)
+✅ OwnershipTransferred (to MarketFactory)
+   previousOwner: 0x68e25d4b1dA2e4FF3B1B1C28a190D890b46D9C66
+   newOwner: 0x22Cc806047BB825aa26b766Af737E92B1866E8A6
 ```
 
 </details>
@@ -507,15 +588,16 @@ HORIZON_TOKEN_ADDR=0x5b2ba38272125bd1dcde41f1a88d98c2f5c14444
 <summary><strong>Authorization Events</strong></summary>
 
 ```
-✅ MinterAdded (HorizonToken)
-   minter: MarketFactory (0xf3f68A76D42679E8b3371bC26B75F7F26E97A10C)
-
 ✅ ResolutionAuthorized (OutcomeToken)
-   resolver: ResolutionModule (0x5407F3937C81A01E783B9E99fbAC624220a534Eb)
+   resolver: ResolutionModule (0xF0CF4C741910cB48AC596F620a0AE892Cd247838)
    authorized: true
 
 ✅ SignerAdded (AIOracleAdapter)
    signer: 0x68e25d4b1dA2e4FF3B1B1C28a190D890b46D9C66
+
+✅ MinCreatorStakeUpdated (MarketFactory)
+   oldStake: 100 HORIZON
+   newStake: 10,000 HORIZON
 ```
 
 </details>
@@ -524,18 +606,19 @@ HORIZON_TOKEN_ADDR=0x5b2ba38272125bd1dcde41f1a88d98c2f5c14444
 
 ## Post-Deployment Checklist
 
-### Immediate Tasks (✅ Completed)
+### Immediate Tasks
 
 - [x] All contracts deployed successfully
-- [x] All contracts verified on BscScan
+- [ ] All contracts verified on BscScan (in progress)
 - [x] Authorization roles configured
 - [x] Ownership transferred to MarketFactory
 - [x] Protocol parameters set correctly
-- [x] Initial HORIZON supply minted
+- [x] Deployer has sufficient HORIZON balance (936,102 tokens)
 
 ### Next 7 Days
 
 - [ ] Deploy AI Resolver service to production
+- [ ] Verify all contracts on BscScan
 - [ ] Set up monitoring and alerting
 - [ ] Create first test markets
 - [ ] Prepare frontend deployment
@@ -561,7 +644,7 @@ HORIZON_TOKEN_ADDR=0x5b2ba38272125bd1dcde41f1a88d98c2f5c14444
 
 **Internal Review**
 - ✅ Code review completed
-- ✅ All tests passing (252/252)
+- ✅ All tests passing
 - ✅ Security patterns verified
 - ✅ Gas optimization checked
 
@@ -586,6 +669,12 @@ HORIZON_TOKEN_ADDR=0x5b2ba38272125bd1dcde41f1a88d98c2f5c14444
 - **Time Locks**: Dispute windows provide intervention opportunities
 - **Multi-sig Ready**: Ownership can be transferred to multi-sig wallets
 
+**Best Practices:**
+- Always use hardware wallets for production deployments
+- Never commit API keys or private keys to version control
+- Implement multi-sig governance for critical operations
+- Regularly audit and rotate access credentials
+
 ---
 
 ## Contract Interactions
@@ -597,11 +686,11 @@ HORIZON_TOKEN_ADDR=0x5b2ba38272125bd1dcde41f1a88d98c2f5c14444
 
 ```solidity
 // 1. Approve HORIZON tokens
-HorizonToken horizon = HorizonToken(0x5b2ba38272125bd1dcde41f1a88d98c2f5c14444);
-horizon.approve(0xf3f68A76D42679E8b3371bC26B75F7F26E97A10C, 10000 ether);
+HorizonToken horizon = HorizonToken(0x5b2bA38272125bd1dcDE41f1a88d98C2F5c14444);
+horizon.approve(0x22Cc806047BB825aa26b766Af737E92B1866E8A6, 10000 ether);
 
 // 2. Create market
-MarketFactory factory = MarketFactory(0xf3f68A76D42679E8b3371bC26B75F7F26E97A10C);
+MarketFactory factory = MarketFactory(0x22Cc806047BB825aa26b766Af737E92B1866E8A6);
 uint256 marketId = factory.createMarket(
     collateralToken,
     "Will BTC reach $100k in 2025?",
@@ -645,62 +734,56 @@ uint256 yesTokens = amm.buyYes(1000 ether, 0);
 </tr>
 <tr>
 <td>MarketFactory</td>
-<td>4,944,054</td>
-<td>39.96%</td>
-<td>0.000249 BNB</td>
+<td>4,944,042</td>
+<td>43.04%</td>
+<td>0.0002472021 BNB</td>
 </tr>
 <tr>
 <td>OutcomeToken</td>
 <td>1,718,990</td>
-<td>13.89%</td>
-<td>0.000087 BNB</td>
+<td>14.97%</td>
+<td>0.0000859495 BNB</td>
 </tr>
 <tr>
 <td>HorizonPerks</td>
 <td>1,354,764</td>
-<td>10.95%</td>
-<td>0.000068 BNB</td>
+<td>11.80%</td>
+<td>0.0000677382 BNB</td>
 </tr>
 <tr>
 <td>ResolutionModule</td>
-<td>1,226,176</td>
-<td>9.91%</td>
-<td>0.000062 BNB</td>
+<td>1,226,164</td>
+<td>10.68%</td>
+<td>0.0000613082 BNB</td>
 </tr>
 <tr>
 <td>AIOracleAdapter</td>
 <td>1,074,749</td>
-<td>8.68%</td>
-<td>0.000054 BNB</td>
+<td>9.36%</td>
+<td>0.00005373745 BNB</td>
 </tr>
 <tr>
 <td>FeeSplitter</td>
 <td>975,952</td>
-<td>7.89%</td>
-<td>0.000049 BNB</td>
+<td>8.50%</td>
+<td>0.0000487976 BNB</td>
 </tr>
 <tr>
-<td>HorizonToken</td>
-<td>840,220</td>
-<td>6.79%</td>
-<td>0.000042 BNB</td>
-</tr>
-<tr>
-<td>Configuration (5 txs)</td>
-<td>237,636</td>
-<td>1.92%</td>
-<td>0.000012 BNB</td>
+<td>Configuration (6 txs)</td>
+<td>186,174</td>
+<td>1.62%</td>
+<td>0.0000093087 BNB</td>
 </tr>
 <tr>
 <td><strong>Total</strong></td>
-<td><strong>12,372,541</strong></td>
+<td><strong>11,484,835</strong></td>
 <td><strong>100%</strong></td>
-<td><strong>0.000624 BNB</strong></td>
+<td><strong>0.00057424175 BNB</strong></td>
 </tr>
 </table>
 
-**Average Gas Price:** 0.050410295 gwei  
-**Total Cost in USD:** ~$0.39 (at $625/BNB)
+**Average Gas Price:** 0.05 gwei  
+**Total Cost in USD:** ~$0.35 (at $625/BNB)
 
 ---
 
@@ -762,6 +845,15 @@ Join our developer community
 - **ERC-1155:** OutcomeToken (multi-token standard)
 - **EIP-712:** AIOracleAdapter (typed structured data signing)
 
+### Supported Market Types
+
+The MarketFactory supports deployment of multiple market types:
+
+1. **Standard AMM** - MarketAMM (constant product formula)
+2. **Limit Order Market** - LimitOrderMarket (CLOB)
+3. **Multi-Choice Market** - MultiChoiceMarket (LMSR)
+4. **Pooled Liquidity** - PooledLiquidityMarket (Uniswap V3 style)
+
 ### Related Documentation
 
 - [Main README](../README.md) - Project overview
@@ -778,8 +870,8 @@ Join our developer community
 
 Project Gamma is now live on BNB Chain
 
-[View on BscScan](https://bscscan.com/address/0xf3f68A76D42679E8b3371bC26B75F7F26E97A10C) • [Website](https://horizonoracles.com/) • [Twitter](https://x.com/HorizonOracles)
+[View MarketFactory on BscScan](https://bscscan.com/address/0x22Cc806047BB825aa26b766Af737E92B1866E8A6) • [Website](https://horizonoracles.com/) • [Twitter](https://x.com/HorizonOracles)
 
-*Deployed with ❤️ on October 29, 2025*
+*Deployed with ❤️ on October 30, 2025*
 
 </div>
