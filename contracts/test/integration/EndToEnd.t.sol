@@ -3,7 +3,7 @@ pragma solidity 0.8.24;
 
 import "forge-std/Test.sol";
 import "../../src/OutcomeToken.sol";
-import "../../src/HorizonToken.sol";
+
 import "../../src/FeeSplitter.sol";
 import "../../src/HorizonPerks.sol";
 import "../../src/MarketAMM.sol";
@@ -17,7 +17,7 @@ import "../mocks/MockERC20.sol";
 contract EndToEndTest is Test {
     // Contracts
     OutcomeToken public outcomeToken;
-    HorizonToken public horizonToken;
+    MockERC20 public horizonToken;
     FeeSplitter public feeSplitter;
     HorizonPerks public horizonPerks;
     MarketAMM public amm;
@@ -39,7 +39,7 @@ contract EndToEndTest is Test {
     function setUp() public {
         // Deploy all contracts
         collateral = new MockERC20("USDC", "USDC");
-        horizonToken = new HorizonToken(1_000_000_000 * 10 ** 18);
+        horizonToken = new MockERC20("Horizon Token", "HORIZON"); horizonToken.mint(address(this), 1_000_000_000 * 10 ** 18);
         outcomeToken = new OutcomeToken("https://api.example.com/{id}");
         feeSplitter = new FeeSplitter(treasury);
         horizonPerks = new HorizonPerks(address(horizonToken));

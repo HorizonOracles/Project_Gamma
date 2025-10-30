@@ -2,7 +2,7 @@
 pragma solidity 0.8.24;
 
 import "forge-std/Script.sol";
-import "../src/HorizonToken.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../src/OutcomeToken.sol";
 import "../src/HorizonPerks.sol";
 import "../src/FeeSplitter.sol";
@@ -10,6 +10,7 @@ import "../src/ResolutionModule.sol";
 import "../src/AIOracleAdapter.sol";
 import "../src/MarketFactory.sol";
 import "../src/MarketAMM.sol";
+import "../test/mocks/MockERC20.sol";
 
 /**
  * @title QuickSetup
@@ -27,7 +28,8 @@ contract QuickSetup is Script {
         console.log("AI Signer:", aiSigner);
         
         // 1. Deploy tokens
-        HorizonToken horizonToken = new HorizonToken(100_000_000 * 10**18);
+        MockERC20 horizonToken = new MockERC20("Horizon Token", "HORIZON");
+        horizonToken.mint(deployer, 100_000_000 * 10**18);
         OutcomeToken outcomeToken = new OutcomeToken("https://horizon.markets/api/metadata/{id}.json");
         HorizonPerks horizonPerks = new HorizonPerks(address(horizonToken));
         
@@ -67,7 +69,6 @@ contract QuickSetup is Script {
         console.log("\nMarketFactory:", address(marketFactory));
         
         // 4. Setup authorizations
-        horizonToken.addMinter(address(marketFactory));
         outcomeToken.setResolutionAuthorization(address(resolutionModule), true);
         outcomeToken.transferOwnership(address(marketFactory));
         feeSplitter.transferOwnership(address(marketFactory));

@@ -276,7 +276,6 @@ func (p *OpenAIPipeline) callOpenAIWithWebSearch(ctx context.Context, prompt str
 		"tools": []map[string]string{
 			{"type": "web_search_preview"},
 		},
-		"temperature": temperature,
 	}
 
 	jsonData, err := json.Marshal(reqBody)
@@ -355,8 +354,7 @@ func (p *OpenAIPipeline) callOpenAIChat(ctx context.Context, prompt string, temp
 				"content": prompt,
 			},
 		},
-		"temperature": temperature,
-		"max_tokens":  2000,
+		"max_completion_tokens": 2000,
 	}
 
 	jsonData, err := json.Marshal(reqBody)

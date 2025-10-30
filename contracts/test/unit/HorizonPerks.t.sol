@@ -3,11 +3,11 @@ pragma solidity 0.8.24;
 
 import "forge-std/Test.sol";
 import "../../src/HorizonPerks.sol";
-import "../../src/HorizonToken.sol";
+import "../mocks/MockERC20.sol";
 
 contract HorizonPerksTest is Test {
     HorizonPerks public perks;
-    HorizonToken public horizonToken;
+    MockERC20 public horizonToken;
 
     address public owner = address(this);
     address public user1 = address(0x1);
@@ -21,7 +21,7 @@ contract HorizonPerksTest is Test {
 
     function setUp() public {
         // Deploy HORIZON token
-        horizonToken = new HorizonToken(1_000_000_000 * 10 ** 18);
+        horizonToken = new MockERC20("Horizon Token", "HORIZON"); horizonToken.mint(address(this), 1_000_000_000 * 10 ** 18);
 
         // Deploy HorizonPerks
         perks = new HorizonPerks(address(horizonToken));

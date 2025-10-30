@@ -4,7 +4,6 @@ pragma solidity ^0.8.20;
 import "forge-std/Script.sol";
 import "../src/MarketFactory.sol";
 import "../src/ResolutionModule.sol";
-import "../src/HorizonToken.sol";
 
 contract DebugProposal is Script {
     function run() external view {

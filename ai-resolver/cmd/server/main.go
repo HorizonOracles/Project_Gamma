@@ -35,13 +35,13 @@ func main() {
 
 	// Initialize blockchain client
 	client, err := adapter.NewClient(ctx, adapter.Config{
-		RPCURL:              cfg.RPCEndpoint,
-		ChainID:             cfg.ChainID,
-		SignerPrivateKey:    cfg.SignerPrivateKey,
-		AdapterAddress:      cfg.AIOracleAdapterAddr,
-		FactoryAddress:      cfg.MarketFactoryAddr,
-		ResolutionAddress:   cfg.ResolutionModuleAddr,
-		HorizonTokenAddress: cfg.HorizonTokenAddr,
+		RPCURL:            cfg.RPCEndpoint,
+		ChainID:           cfg.ChainID,
+		SignerPrivateKey:  cfg.SignerPrivateKey,
+		AdapterAddress:    cfg.AIOracleAdapterAddr,
+		FactoryAddress:    cfg.MarketFactoryAddr,
+		ResolutionAddress: cfg.ResolutionModuleAddr,
+		TokenAddress:      cfg.TokenAddr,
 	})
 	if err != nil {
 		log.Fatalf("Failed to initialize blockchain client: %v", err)

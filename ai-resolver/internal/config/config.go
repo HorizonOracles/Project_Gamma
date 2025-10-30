@@ -18,7 +18,7 @@ type Config struct {
 	RPCEndpoint          string
 	AIOracleAdapterAddr  string
 	ResolutionModuleAddr string
-	HorizonTokenAddr     string
+	TokenAddr            string
 	MarketFactoryAddr    string
 
 	// AI settings
@@ -53,7 +53,7 @@ func LoadFromEnv() (*Config, error) {
 		RPCEndpoint:          getEnv("RPC_ENDPOINT", ""),
 		AIOracleAdapterAddr:  getEnv("AI_ORACLE_ADAPTER_ADDR", ""),
 		ResolutionModuleAddr: getEnv("RESOLUTION_MODULE_ADDR", ""),
-		HorizonTokenAddr:     getEnv("HORIZON_TOKEN_ADDR", ""),
+		TokenAddr:            getEnv("TOKEN_ADDR", ""),
 		MarketFactoryAddr:    getEnv("MARKET_FACTORY_ADDR", ""),
 		OpenAIAPIKey:         getEnv("OPENAI_API_KEY", ""),
 		OpenAIModel:          getEnv("OPENAI_MODEL", "gpt-4-turbo-preview"),
@@ -87,8 +87,8 @@ func (c *Config) Validate() error {
 	if c.ResolutionModuleAddr == "" {
 		return fmt.Errorf("RESOLUTION_MODULE_ADDR is required")
 	}
-	if c.HorizonTokenAddr == "" {
-		return fmt.Errorf("HORIZON_TOKEN_ADDR is required")
+	if c.TokenAddr == "" {
+		return fmt.Errorf("TOKEN_ADDR is required")
 	}
 	if c.MarketFactoryAddr == "" {
 		return fmt.Errorf("MARKET_FACTORY_ADDR is required")

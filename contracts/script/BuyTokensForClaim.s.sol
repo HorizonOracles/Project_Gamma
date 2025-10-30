@@ -2,7 +2,7 @@
 pragma solidity 0.8.24;
 
 import "forge-std/Script.sol";
-import "../src/HorizonToken.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../src/MarketAMM.sol";
 
 /**
@@ -11,7 +11,7 @@ import "../src/MarketAMM.sol";
  * Account 2 (0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC) will buy NO
  */
 contract BuyTokensForClaim is Script {
-    HorizonToken horizonToken = HorizonToken(0x5FbDB2315678afecb367f032d93F642f64180aa3);
+    IERC20 horizonToken = IERC20(0x5FbDB2315678afecb367f032d93F642f64180aa3);
     MarketAMM amm = MarketAMM(0x94099942864EA81cCF197E9D71ac53310b1468D8);
     
     address constant account1 = 0x70997970C51812dc3A010C7d01b50e0d17dc79C8;

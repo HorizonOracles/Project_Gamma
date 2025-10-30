@@ -4,12 +4,12 @@ pragma solidity 0.8.24;
 import "forge-std/Test.sol";
 import "../../src/ResolutionModule.sol";
 import "../../src/OutcomeToken.sol";
-import "../../src/HorizonToken.sol";
+import "../mocks/MockERC20.sol";
 
 contract ResolutionModuleTest is Test {
     ResolutionModule public resolution;
     OutcomeToken public outcomeToken;
-    HorizonToken public bondToken;
+    MockERC20 public bondToken;
 
     address public owner = address(this);
     address public arbitrator = address(0x1);
@@ -47,7 +47,7 @@ contract ResolutionModuleTest is Test {
 
     function setUp() public {
         // Deploy contracts
-        bondToken = new HorizonToken(1_000_000_000 * 10 ** 18);
+        bondToken = new MockERC20("Horizon Token", "HORIZON"); bondToken.mint(address(this), 1_000_000_000 * 10 ** 18);
         outcomeToken = new OutcomeToken("https://api.example.com/{id}");
         resolution = new ResolutionModule(address(outcomeToken), address(bondToken), arbitrator);
 

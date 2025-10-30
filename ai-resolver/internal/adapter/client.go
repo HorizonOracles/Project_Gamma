@@ -26,24 +26,24 @@ type Client struct {
 	adapter       *abi.AIOracleAdapter
 	factory       *abi.MarketFactory
 	resolutionMod *abi.ResolutionModule
-	horizonToken  *abi.HorizonToken
+	token         *abi.Token
 
 	// Contract addresses
-	adapterAddr      common.Address
-	factoryAddr      common.Address
-	resolutionAddr   common.Address
-	horizonTokenAddr common.Address
+	adapterAddr    common.Address
+	factoryAddr    common.Address
+	resolutionAddr common.Address
+	tokenAddr      common.Address
 }
 
 // Config holds client configuration
 type Config struct {
-	RPCURL              string
-	ChainID             int64
-	SignerPrivateKey    string
-	AdapterAddress      string
-	FactoryAddress      string
-	ResolutionAddress   string
-	HorizonTokenAddress string
+	RPCURL            string
+	ChainID           int64
+	SignerPrivateKey  string
+	AdapterAddress    string
+	FactoryAddress    string
+	ResolutionAddress string
+	TokenAddress      string
 }
 
 // NewClient creates a new contract client
@@ -67,7 +67,7 @@ func NewClient(ctx context.Context, cfg Config) (*Client, error) {
 	adapterAddr := common.HexToAddress(cfg.AdapterAddress)
 	factoryAddr := common.HexToAddress(cfg.FactoryAddress)
 	resolutionAddr := common.HexToAddress(cfg.ResolutionAddress)
-	horizonTokenAddr := common.HexToAddress(cfg.HorizonTokenAddress)
+	tokenAddr := common.HexToAddress(cfg.TokenAddress)
 
 	// Create contract instances
 	adapter, err := abi.NewAIOracleAdapter(adapterAddr, eth)
@@ -85,24 +85,24 @@ func NewClient(ctx context.Context, cfg Config) (*Client, error) {
 		return nil, fmt.Errorf("failed to create resolution module instance: %w", err)
 	}
 
-	horizonToken, err := abi.NewHorizonToken(horizonTokenAddr, eth)
+	token, err := abi.NewToken(tokenAddr, eth)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create horizon token instance: %w", err)
+		return nil, fmt.Errorf("failed to create token instance: %w", err)
 	}
 
 	return &Client{
-		eth:              eth,
-		chainID:          chainID,
-		signer:           privateKey,
-		signerAddr:       signerAddr,
-		adapter:          adapter,
-		factory:          factory,
-		resolutionMod:    resolutionMod,
-		horizonToken:     horizonToken,
-		adapterAddr:      adapterAddr,
-		factoryAddr:      factoryAddr,
-		resolutionAddr:   resolutionAddr,
-		horizonTokenAddr: horizonTokenAddr,
+		eth:            eth,
+		chainID:        chainID,
+		signer:         privateKey,
+		signerAddr:     signerAddr,
+		adapter:        adapter,
+		factory:        factory,
+		resolutionMod:  resolutionMod,
+		token:          token,
+		adapterAddr:    adapterAddr,
+		factoryAddr:    factoryAddr,
+		resolutionAddr: resolutionAddr,
+		tokenAddr:      tokenAddr,
 	}, nil
 }
 
@@ -148,21 +148,21 @@ func (c *Client) GetMarket(ctx context.Context, marketID *big.Int) (*MarketInfo,
 
 // CheckAllowance checks if the adapter has sufficient token allowance
 func (c *Client) CheckAllowance(ctx context.Context) (*big.Int, error) {
-	allowance, err := c.horizonToken.Allowance(&bind.CallOpts{Context: ctx}, c.signerAddr, c.adapterAddr)
+	allowance, err := c.token.Allowance(&bind.CallOpts{Context: ctx}, c.signerAddr, c.adapterAddr)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check allowance: %w", err)
 	}
 	return allowance, nil
 }
 
-// ApproveBond approves the adapter to spend HORIZON tokens for bonding
+// ApproveBond approves the adapter to spend tokens for bonding
 func (c *Client) ApproveBond(ctx context.Context, amount *big.Int) (*types.Transaction, error) {
 	auth, err := c.newTransactor(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	tx, err := c.horizonToken.Approve(auth, c.adapterAddr, amount)
+	tx, err := c.token.Approve(auth, c.adapterAddr, amount)
 	if err != nil {
 		return nil, fmt.Errorf("failed to approve bond: %w", err)
 	}
@@ -211,9 +211,9 @@ func (c *Client) WaitForTransaction(ctx context.Context, tx *types.Transaction) 
 	return nil, fmt.Errorf("transaction timeout: %s", tx.Hash().Hex())
 }
 
-// GetBalance gets the signer's HORIZON token balance
+// GetBalance gets the signer's token balance
 func (c *Client) GetBalance(ctx context.Context) (*big.Int, error) {
-	balance, err := c.horizonToken.BalanceOf(&bind.CallOpts{Context: ctx}, c.signerAddr)
+	balance, err := c.token.BalanceOf(&bind.CallOpts{Context: ctx}, c.signerAddr)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get balance: %w", err)
 	}

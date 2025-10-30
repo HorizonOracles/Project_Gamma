@@ -9,22 +9,30 @@ import "../src/FeeSplitter.sol";
 import "../src/ResolutionModule.sol";
 import "../src/AIOracleAdapter.sol";
 import "../src/MarketFactory.sol";
-// Import market types to ensure they compile
+// Import all market types to ensure they compile
 import "../src/markets/LimitOrderMarket.sol";
 import "../src/markets/MultiChoiceMarket.sol";
 import "../src/markets/PooledLiquidityMarket.sol";
 
 /**
- * @title Deploy
- * @notice Comprehensive deployment script for Horizon prediction market protocol
- * @dev Handles sequential deployment with proper dependency management and authorization setup
+ * @title DeployMainnet
+ * @notice Mainnet deployment script that uses existing Token3 and redeploys all other contracts
+ * @dev Usage:
+ *      1. Set HORIZON_TOKEN_ADDRESS in .env to existing Token3 address
+ *      2. Run: forge script script/DeployMainnet.s.sol --rpc-url $RPC_URL --broadcast --verify
+ * 
+ *      This script will:
+ *      - Use existing HorizonToken (Token3) from mainnet
+ *      - Redeploy all protocol contracts (OutcomeToken, HorizonPerks, FeeSplitter, etc.)
+ *      - Redeploy MarketFactory with updated configuration
+ *      - Ensure all market types (LimitOrder, MultiChoice, PooledLiquidity) compile correctly
  */
-contract Deploy is Script {
+contract DeployMainnet is Script {
     // ============ Deployment Configuration ============
 
     struct DeploymentConfig {
         // Token configuration
-        uint256 horizonInitialSupply;
+        address horizonTokenAddress;  // Existing token on mainnet
         string outcomeTokenURI;
         // Admin addresses
         address protocolOwner;
@@ -60,12 +68,19 @@ contract Deploy is Script {
         // Validate configuration
         validateConfig(config);
 
+        console.log("\n========================================");
+        console.log("  MAINNET DEPLOYMENT - PROJECT GAMMA");
+        console.log("========================================\n");
+        console.log("Using existing HorizonToken (Token3):", config.horizonTokenAddress);
+        console.log("Deployer:", msg.sender);
+        console.log("Chain ID:", block.chainid);
+
         // Start broadcasting transactions
         vm.startBroadcast();
 
-        // 1. Deploy core token contracts
-        console.log("\n=== PHASE 1: DEPLOYING CORE TOKENS ===");
-        deployTokens(config);
+        // 1. Set existing token reference
+        console.log("\n=== PHASE 1: TOKEN SETUP ===");
+        setupToken(config);
 
         // 2. Deploy protocol infrastructure
         console.log("\n=== PHASE 2: DEPLOYING PROTOCOL INFRASTRUCTURE ===");
@@ -93,18 +108,25 @@ contract Deploy is Script {
     // ============ Deployment Phases ============
 
     /**
-     * @notice Deploy core token contracts (OutcomeToken, HorizonPerks)
-     * @dev Uses existing HORIZON token address from environment variable
+     * @notice Setup reference to existing HorizonToken (Token3)
+     * @dev Does not deploy a new token - uses existing mainnet deployment
      */
-    function deployTokens(DeploymentConfig memory config) internal {
-        // Get token address from environment variable (required)
-        address tokenAddress = vm.envAddress("HORIZON_TOKEN_ADDRESS");
-        require(tokenAddress != address(0), "HORIZON_TOKEN_ADDRESS environment variable not set");
+    function setupToken(DeploymentConfig memory config) internal {
+        console.log("Setting up existing HorizonToken reference...");
+        horizonToken = IERC20(config.horizonTokenAddress);
         
-        console.log("Using existing HorizonToken...");
-        horizonToken = IERC20(tokenAddress);
-        console.log("  HorizonToken address:", address(horizonToken));
+        // Verify the token exists by checking balance
+        uint256 deployerBalance = horizonToken.balanceOf(msg.sender);
+        console.log("  Token address:", address(horizonToken));
+        console.log("  Deployer balance:", deployerBalance / 1e18, "HORIZON");
+        
+        require(address(horizonToken).code.length > 0, "Token address has no code");
+    }
 
+    /**
+     * @notice Deploy protocol infrastructure (OutcomeToken, HorizonPerks, FeeSplitter, ResolutionModule, AIOracleAdapter)
+     */
+    function deployInfrastructure(DeploymentConfig memory config) internal {
         console.log("Deploying OutcomeToken...");
         outcomeToken = new OutcomeToken(config.outcomeTokenURI);
         console.log("  OutcomeToken deployed at:", address(outcomeToken));
@@ -112,12 +134,7 @@ contract Deploy is Script {
         console.log("Deploying HorizonPerks...");
         horizonPerks = new HorizonPerks(address(horizonToken));
         console.log("  HorizonPerks deployed at:", address(horizonPerks));
-    }
 
-    /**
-     * @notice Deploy protocol infrastructure (FeeSplitter, ResolutionModule, AIOracleAdapter)
-     */
-    function deployInfrastructure(DeploymentConfig memory config) internal {
         console.log("Deploying FeeSplitter...");
         feeSplitter = new FeeSplitter(config.protocolTreasury);
         console.log("  FeeSplitter deployed at:", address(feeSplitter));
@@ -146,6 +163,7 @@ contract Deploy is Script {
 
     /**
      * @notice Deploy market creation system (MarketFactory)
+     * @dev Factory will support all market types: Standard AMM, LimitOrder, MultiChoice, PooledLiquidity
      */
     function deployMarketSystem(DeploymentConfig memory config) internal {
         console.log("Deploying MarketFactory...");
@@ -160,6 +178,12 @@ contract Deploy is Script {
         // Set market creation parameters
         console.log("  Setting market creation parameters...");
         marketFactory.setMinCreatorStake(config.minCreatorStake);
+        
+        console.log("\n  Supported Market Types:");
+        console.log("  - Standard AMM (via MarketAMM)");
+        console.log("  - Limit Order Markets (LimitOrderMarket)");
+        console.log("  - Multi-Choice Markets (MultiChoiceMarket)");
+        console.log("  - Pooled Liquidity Markets (PooledLiquidityMarket)");
     }
 
     /**
@@ -170,25 +194,28 @@ contract Deploy is Script {
         // ResolutionModule needs to be authorized to set winning outcomes
         outcomeToken.setResolutionAuthorization(address(resolutionModule), true);
 
-        console.log("Transferring OutcomeToken and FeeSplitter ownership to MarketFactory...");
+        console.log("Transferring OutcomeToken ownership to MarketFactory...");
         // MarketFactory needs ownership to register markets and authorize AMMs
         outcomeToken.transferOwnership(address(marketFactory));
+
+        console.log("Transferring FeeSplitter ownership to MarketFactory...");
         // MarketFactory also needs to register markets in FeeSplitter
         feeSplitter.transferOwnership(address(marketFactory));
 
-        console.log("Setting up ownership transfers...");
         // Transfer ownership to protocol owner if different from deployer
         if (config.protocolOwner != msg.sender && config.protocolOwner != address(0)) {
-            console.log("  Transferring HorizonPerks ownership to:", config.protocolOwner);
+            console.log("Transferring ownership to protocol owner:", config.protocolOwner);
+            
+            console.log("  Transferring HorizonPerks ownership...");
             horizonPerks.transferOwnership(config.protocolOwner);
 
-            console.log("  Transferring ResolutionModule ownership to:", config.protocolOwner);
+            console.log("  Transferring ResolutionModule ownership...");
             resolutionModule.transferOwnership(config.protocolOwner);
 
-            console.log("  Transferring AIOracleAdapter ownership to:", config.protocolOwner);
+            console.log("  Transferring AIOracleAdapter ownership...");
             aiOracleAdapter.transferOwnership(config.protocolOwner);
 
-            console.log("  Transferring MarketFactory ownership to:", config.protocolOwner);
+            console.log("  Transferring MarketFactory ownership...");
             marketFactory.transferOwnership(config.protocolOwner);
         }
     }
@@ -198,7 +225,7 @@ contract Deploy is Script {
      */
     function verifyDeployment(DeploymentConfig memory config) internal view {
         console.log("Verifying HorizonToken...");
-        require(address(horizonToken) != address(0), "HorizonToken not deployed");
+        require(address(horizonToken) == config.horizonTokenAddress, "HorizonToken address mismatch");
 
         console.log("Verifying OutcomeToken...");
         require(address(outcomeToken) != address(0), "OutcomeToken not deployed");
@@ -243,17 +270,15 @@ contract Deploy is Script {
         console.log("        DEPLOYMENT SUMMARY");
         console.log("==========================================\n");
 
-        console.log("CORE TOKENS:");
-        console.log("  HorizonToken:           ", address(horizonToken));
+        console.log("TOKEN (EXISTING - NOT REDEPLOYED):");
+        console.log("  HorizonToken (Token3):  ", address(horizonToken));
+
+        console.log("\nNEWLY DEPLOYED CONTRACTS:");
         console.log("  OutcomeToken:           ", address(outcomeToken));
         console.log("  HorizonPerks:           ", address(horizonPerks));
-
-        console.log("\nPROTOCOL INFRASTRUCTURE:");
         console.log("  FeeSplitter:            ", address(feeSplitter));
         console.log("  ResolutionModule:       ", address(resolutionModule));
         console.log("  AIOracleAdapter:        ", address(aiOracleAdapter));
-
-        console.log("\nMARKET SYSTEM:");
         console.log("  MarketFactory:          ", address(marketFactory));
 
         console.log("\nADMIN ADDRESSES:");
@@ -263,10 +288,15 @@ contract Deploy is Script {
         console.log("  AI Signer:              ", config.aiSigner);
 
         console.log("\nPROTOCOL PARAMETERS:");
-        console.log("  HORIZON Initial Supply: ", config.horizonInitialSupply / 10 ** 18, "HORIZON");
         console.log("  Min Creator Stake:      ", config.minCreatorStake / 10 ** 18, "HORIZON");
         console.log("  Min Resolution Bond:    ", config.minResolutionBond / 10 ** 18, "HORIZON");
         console.log("  Dispute Window:         ", config.disputeWindow, "seconds");
+
+        console.log("\nSUPPORTED MARKET TYPES:");
+        console.log("  1. Standard AMM         (MarketAMM - constant product)");
+        console.log("  2. Limit Order Market   (LimitOrderMarket - CLOB)");
+        console.log("  3. Multi-Choice Market  (MultiChoiceMarket - LMSR)");
+        console.log("  4. Pooled Liquidity     (PooledLiquidityMarket - Uniswap V3 style)");
 
         console.log("\n==========================================");
         console.log("Copy these addresses to your .env file:");
@@ -290,8 +320,11 @@ contract Deploy is Script {
      * @return config Populated deployment configuration struct
      */
     function loadConfig() internal view returns (DeploymentConfig memory config) {
+        // Token address (REQUIRED - must be set in .env)
+        config.horizonTokenAddress = vm.envAddress("HORIZON_TOKEN_ADDRESS");
+        require(config.horizonTokenAddress != address(0), "HORIZON_TOKEN_ADDRESS not set in .env");
+
         // Token configuration
-        config.horizonInitialSupply = vm.envOr("HORIZON_INITIAL_SUPPLY", uint256(100_000_000 * 10 ** 18)); // 100M default
         config.outcomeTokenURI = vm.envOr("OUTCOME_TOKEN_URI", string("https://horizon.markets/api/metadata/{id}.json"));
 
         // Admin addresses
@@ -311,6 +344,7 @@ contract Deploy is Script {
      * @param config Configuration to validate
      */
     function validateConfig(DeploymentConfig memory config) internal pure {
+        require(config.horizonTokenAddress != address(0), "Invalid token address");
         require(bytes(config.outcomeTokenURI).length > 0, "Invalid URI");
         require(config.protocolTreasury != address(0), "Invalid treasury");
         require(config.arbitrator != address(0), "Invalid arbitrator");
@@ -324,27 +358,18 @@ contract Deploy is Script {
     // ============ Utility Functions ============
 
     /**
-     * @notice Helper to deploy to a specific network
-     * @dev Can be called with: forge script script/Deploy.s.sol:Deploy --sig "deployToNetwork(string)" "bsc"
-     */
-    function deployToNetwork(string memory network) external {
-        console.log("Deploying to network:", network);
-        this.run();
-    }
-
-    /**
      * @notice Helper to simulate deployment without broadcasting
-     * @dev Useful for testing: forge script script/Deploy.s.sol:Deploy --sig "simulate()"
+     * @dev Useful for testing: forge script script/DeployMainnet.s.sol:DeployMainnet --sig "simulate()"
      */
-    function simulate() external {
+    function simulate() external view {
         DeploymentConfig memory config = loadConfig();
         validateConfig(config);
 
-        console.log("\n=== SIMULATING DEPLOYMENT ===");
+        console.log("\n=== SIMULATING MAINNET DEPLOYMENT ===");
         console.log("This is a dry run - no transactions will be broadcast\n");
 
         console.log("Configuration:");
-        console.log("  HORIZON Initial Supply:", config.horizonInitialSupply / 10 ** 18, "HORIZON");
+        console.log("  Existing Token Address:", config.horizonTokenAddress);
         console.log("  Outcome Token URI:", config.outcomeTokenURI);
         console.log("  Protocol Owner:", config.protocolOwner);
         console.log("  Protocol Treasury:", config.protocolTreasury);
@@ -355,6 +380,6 @@ contract Deploy is Script {
         console.log("  Dispute Window:", config.disputeWindow, "seconds");
 
         console.log("\nConfiguration validated successfully!");
-        console.log("Ready to deploy with: forge script script/Deploy.s.sol:Deploy --rpc-url <RPC_URL> --broadcast");
+        console.log("Ready to deploy with: forge script script/DeployMainnet.s.sol:DeployMainnet --rpc-url <RPC_URL> --broadcast --verify");
     }
 }

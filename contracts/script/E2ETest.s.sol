@@ -2,7 +2,7 @@
 pragma solidity 0.8.24;
 
 import "forge-std/Script.sol";
-import "../src/HorizonToken.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../src/MarketFactory.sol";
 import "../src/MarketAMM.sol";
 import "../src/OutcomeToken.sol";
@@ -18,7 +18,7 @@ contract E2ETest is Script {
     address public outcomeTokenAddr;
     
     // Contracts
-    HorizonToken public horizonToken;
+    IERC20 public horizonToken;
     MarketFactory public marketFactory;
     OutcomeToken public outcomeToken;
     
@@ -37,7 +37,7 @@ contract E2ETest is Script {
         marketFactoryAddr = vm.envAddress("MARKET_FACTORY_ADDR");
         outcomeTokenAddr = vm.envAddress("OUTCOME_TOKEN_ADDR");
         
-        horizonToken = HorizonToken(horizonTokenAddr);
+        horizonToken = IERC20(horizonTokenAddr);
         marketFactory = MarketFactory(marketFactoryAddr);
         outcomeToken = OutcomeToken(outcomeTokenAddr);
         
@@ -124,7 +124,7 @@ contract E2ETest is Script {
         vm.stopBroadcast();
         
         vm.startBroadcast(0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d);
-        HorizonToken(horizonTokenAddr).approve(ammAddress, 5_000 * 10**18);
+        IERC20(horizonTokenAddr).approve(ammAddress, 5_000 * 10**18);
         amm.buyYes(5_000 * 10**18, 1);  // Buy YES with 5k HORIZON
         vm.stopBroadcast();
         console.log("    Trader1 spent: 5,000 HORIZON for YES tokens");
@@ -136,7 +136,7 @@ contract E2ETest is Script {
         vm.stopBroadcast();
         
         vm.startBroadcast(0x5de4111afa1a4b94908f83103eb1f1706367c2e68ca870fc3fb9a804cdab365a); // trader2 private key
-        HorizonToken(horizonTokenAddr).approve(ammAddress, 5_000 * 10**18);
+        IERC20(horizonTokenAddr).approve(ammAddress, 5_000 * 10**18);
         amm.buyNo(5_000 * 10**18, 1);  // Buy NO with 5k HORIZON
         vm.stopBroadcast();
         console.log("    Trader2 spent: 5,000 HORIZON for NO tokens");

@@ -2,8 +2,8 @@
 pragma solidity 0.8.24;
 
 import "forge-std/Script.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../src/MarketFactory.sol";
-import "../src/HorizonToken.sol";
 
 contract CreateMarket2 is Script {
     function run() external {
@@ -14,7 +14,7 @@ contract CreateMarket2 is Script {
         vm.startBroadcast(deployerPrivateKey);
         
         MarketFactory factory = MarketFactory(factoryAddr);
-        HorizonToken horizonToken = HorizonToken(horizonTokenAddr);
+        IERC20 horizonToken = IERC20(horizonTokenAddr);
         
         // Create a new market that closes in 300 seconds (5 minutes)
         uint256 closeTime = block.timestamp + 300;

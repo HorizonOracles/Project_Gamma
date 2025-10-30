@@ -6,7 +6,7 @@ import "../../src/MarketFactory.sol";
 import "../../src/OutcomeToken.sol";
 import "../../src/FeeSplitter.sol";
 import "../../src/HorizonPerks.sol";
-import "../../src/HorizonToken.sol";
+
 import "../../src/ResolutionModule.sol";
 import "../../src/MarketAMM.sol";
 import "../mocks/MockERC20.sol";
@@ -22,7 +22,7 @@ contract FullSystemTest is Test {
     OutcomeToken public outcomeToken;
     FeeSplitter public feeSplitter;
     HorizonPerks public horizonPerks;
-    HorizonToken public horizonToken;
+    MockERC20 public horizonToken;
     ResolutionModule public resolution;
     MockERC20 public usdc;
     MockERC20 public dai;
@@ -55,7 +55,7 @@ contract FullSystemTest is Test {
         // Deploy base contracts
         usdc = new MockERC20("USDC", "USDC");
         dai = new MockERC20("DAI", "DAI");
-        horizonToken = new HorizonToken(1_000_000_000 * 10 ** 18);
+        horizonToken = new MockERC20("Horizon Token", "HORIZON"); horizonToken.mint(address(this), 1_000_000_000 * 10 ** 18);
         outcomeToken = new OutcomeToken("https://api.example.com/{id}");
         feeSplitter = new FeeSplitter(treasury);
         horizonPerks = new HorizonPerks(address(horizonToken));

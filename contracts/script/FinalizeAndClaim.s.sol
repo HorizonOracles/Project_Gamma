@@ -2,15 +2,15 @@
 pragma solidity 0.8.24;
 
 import "forge-std/Script.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../src/ResolutionModule.sol";
 import "../src/MarketAMM.sol";
-import "../src/HorizonToken.sol";
 import "../src/OutcomeToken.sol";
 
 contract FinalizeAndClaim is Script {
     ResolutionModule resolution = ResolutionModule(0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9);
     MarketAMM amm = MarketAMM(0x94099942864EA81cCF197E9D71ac53310b1468D8);
-    HorizonToken horizonToken = HorizonToken(0x5FbDB2315678afecb367f032d93F642f64180aa3);
+    IERC20 horizonToken = IERC20(0x5FbDB2315678afecb367f032d93F642f64180aa3);
     OutcomeToken outcomeToken = OutcomeToken(0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512);
     
     address constant account1 = 0x70997970C51812dc3A010C7d01b50e0d17dc79C8;

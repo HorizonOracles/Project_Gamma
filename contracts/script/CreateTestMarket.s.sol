@@ -2,7 +2,7 @@
 pragma solidity 0.8.24;
 
 import "forge-std/Script.sol";
-import "../src/HorizonToken.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../src/MarketFactory.sol";
 
 /**
@@ -15,7 +15,7 @@ contract CreateTestMarket is Script {
         address horizonTokenAddr = 0x68B1D87F95878fE05B998F19b66F4baba5De1aed;
         address marketFactoryAddr = 0x7a2088a1bFc9d81c55368AE168C2C02570cB814F;
         
-        HorizonToken horizonToken = HorizonToken(horizonTokenAddr);
+        IERC20 horizonToken = IERC20(horizonTokenAddr);
         MarketFactory marketFactory = MarketFactory(marketFactoryAddr);
         
         vm.startBroadcast();

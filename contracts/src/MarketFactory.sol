@@ -9,7 +9,6 @@ import "./MarketAMM.sol";
 import "./OutcomeToken.sol";
 import "./FeeSplitter.sol";
 import "./HorizonPerks.sol";
-import "./HorizonToken.sol";
 
 /**
  * @title MarketFactory
@@ -117,7 +116,7 @@ contract MarketFactory is Ownable, ReentrancyGuard {
     OutcomeToken public immutable outcomeToken;
     FeeSplitter public immutable feeSplitter;
     HorizonPerks public immutable horizonPerks;
-    HorizonToken public immutable horizonToken;
+    IERC20 public immutable horizonToken;
 
     /// @notice Counter for generating unique market IDs
     uint256 public nextMarketId = 1;
@@ -156,7 +155,7 @@ contract MarketFactory is Ownable, ReentrancyGuard {
         outcomeToken = OutcomeToken(_outcomeToken);
         feeSplitter = FeeSplitter(_feeSplitter);
         horizonPerks = HorizonPerks(_horizonPerks);
-        horizonToken = HorizonToken(_horizonToken);
+        horizonToken = IERC20(_horizonToken);
     }
 
     // ============ Market Creation ============

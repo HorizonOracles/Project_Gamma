@@ -2,13 +2,17 @@
 pragma solidity 0.8.24;
 
 import "forge-std/Script.sol";
-import "../src/HorizonToken.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../src/OutcomeToken.sol";
 import "../src/HorizonPerks.sol";
 import "../src/FeeSplitter.sol";
 import "../src/ResolutionModule.sol";
 import "../src/MarketFactory.sol";
 import "../test/mocks/MockERC20.sol";
+// Import market types to ensure they compile
+import "../src/markets/LimitOrderMarket.sol";
+import "../src/markets/MultiChoiceMarket.sol";
+import "../src/markets/PooledLiquidityMarket.sol";
 
 /**
  * @title DeployLocal
@@ -28,7 +32,7 @@ import "../test/mocks/MockERC20.sol";
 contract DeployLocal is Script {
     // ============ Deployed Contracts ============
 
-    HorizonToken public horizonToken;
+    IERC20 public horizonToken;
     OutcomeToken public outcomeToken;
     HorizonPerks public horizonPerks;
     FeeSplitter public feeSplitter;
@@ -38,6 +42,9 @@ contract DeployLocal is Script {
     // Mock tokens for testing
     MockERC20 public usdc;
     MockERC20 public usdt;
+    
+    // Use external Token3 address (set via environment variable or parameter)
+    address public tokenAddress;
 
     // ============ Configuration ============
 
@@ -56,9 +63,16 @@ contract DeployLocal is Script {
     // ============ Main Deployment Function ============
 
     function run() external {
+        // Get Token3 address from environment variable
+        tokenAddress = vm.envOr("TOKEN_ADDRESS", address(0));
+        require(tokenAddress != address(0), "TOKEN_ADDRESS environment variable not set");
+        
+        horizonToken = IERC20(tokenAddress);
+        
         console.log("\n=== DEPLOYING TO LOCAL ANVIL ===");
         console.log("Deployer:", deployer);
         console.log("Chain ID:", block.chainid);
+        console.log("Using Token3 at:", tokenAddress);
         
         vm.startBroadcast();
 
@@ -104,10 +118,8 @@ contract DeployLocal is Script {
      * @notice Deploy core protocol contracts
      */
     function deployCoreContracts() internal {
-        // 1. Deploy HorizonToken
-        console.log("Deploying HorizonToken...");
-        horizonToken = new HorizonToken(HORIZON_INITIAL_SUPPLY);
-        console.log("  HorizonToken deployed at:", address(horizonToken));
+        // 1. HorizonToken already deployed (Token3), using address from environment
+        console.log("Using HorizonToken (Token3) at:", address(horizonToken));
 
         // 2. Deploy OutcomeToken
         console.log("Deploying OutcomeToken...");
@@ -186,9 +198,11 @@ contract DeployLocal is Script {
         for (uint256 i = 0; i < testAccounts.length; i++) {
             address account = testAccounts[i];
             
-            // Give each account 1M USDC, 1M USDT, and 100k HORIZON
+            // Give each account 1M USDC, 1M USDT
             usdc.mint(account, 1_000_000 ether);
             usdt.mint(account, 1_000_000 ether);
+            
+            // Transfer HORIZON tokens (using Token3 transfer which should work in NORMAL mode)
             horizonToken.transfer(account, 100_000 ether);
             
             console.log("  Funded account:", account);

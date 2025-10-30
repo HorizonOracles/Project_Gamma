@@ -6,7 +6,7 @@ import "../../src/MarketAMM.sol";
 import "../../src/OutcomeToken.sol";
 import "../../src/FeeSplitter.sol";
 import "../../src/HorizonPerks.sol";
-import "../../src/HorizonToken.sol";
+
 import "../mocks/MockERC20.sol";
 
 contract MarketAMMTest is Test {
@@ -14,7 +14,7 @@ contract MarketAMMTest is Test {
     OutcomeToken public outcomeToken;
     FeeSplitter public feeSplitter;
     HorizonPerks public horizonPerks;
-    HorizonToken public horizonToken;
+    MockERC20 public horizonToken;
     MockERC20 public collateral;
 
     address public owner = address(this);
@@ -42,7 +42,7 @@ contract MarketAMMTest is Test {
     function setUp() public {
         // Deploy tokens
         collateral = new MockERC20("USDC", "USDC");
-        horizonToken = new HorizonToken(1_000_000_000 * 10 ** 18);
+        horizonToken = new MockERC20("Horizon Token", "HORIZON"); horizonToken.mint(address(this), 1_000_000_000 * 10 ** 18);
 
         // Deploy core contracts
         outcomeToken = new OutcomeToken("https://api.example.com/{id}");

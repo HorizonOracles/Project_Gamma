@@ -73,10 +73,10 @@ Project Gamma has been successfully deployed to BNB Chain mainnet. All 7 core co
 </tr>
 <tr>
 <td><strong>HorizonToken</strong></td>
-<td><code>0x29Cfa909515Cece341f6E8149026c9D7861a04BF</code></td>
-<td>66328647</td>
-<td>840,220</td>
-<td><a href="https://bscscan.com/address/0x29Cfa909515Cece341f6E8149026c9D7861a04BF">View</a></td>
+<td><code>0x5b2ba38272125bd1dcde41f1a88d98c2f5c14444</code></td>
+<td>Pre-deployed</td>
+<td>N/A</td>
+<td><a href="https://bscscan.com/address/0x5b2ba38272125bd1dcde41f1a88d98c2f5c14444">View</a></td>
 </tr>
 <tr>
 <td><strong>OutcomeToken</strong></td>
@@ -439,7 +439,7 @@ CHAIN_ID=56
 BSC_RPC_URL=https://bsc-dataseed.binance.org/
 
 # Core Tokens
-HORIZON_TOKEN_ADDRESS=0x29Cfa909515Cece341f6E8149026c9D7861a04BF
+HORIZON_TOKEN_ADDRESS=0x5b2ba38272125bd1dcde41f1a88d98c2f5c14444
 OUTCOME_TOKEN_ADDRESS=0x72F84681AA0dc8DB53E87eD507A4D6651B1C312D
 HORIZON_PERKS_ADDRESS=0x31709748Cc9030e86E71570442fa762c851950b3
 
@@ -463,7 +463,7 @@ CHAIN_ID=56
 AI_ORACLE_ADAPTER_ADDR=0x30827513096b63F09C0c24f574933b43e222C5D7
 MARKET_FACTORY_ADDR=0xf3f68A76D42679E8b3371bC26B75F7F26E97A10C
 RESOLUTION_MODULE_ADDR=0x5407F3937C81A01E783B9E99fbAC624220a534Eb
-HORIZON_TOKEN_ADDR=0x29Cfa909515Cece341f6E8149026c9D7861a04BF
+HORIZON_TOKEN_ADDR=0x5b2ba38272125bd1dcde41f1a88d98c2f5c14444
 ```
 
 ---
@@ -597,7 +597,7 @@ HORIZON_TOKEN_ADDR=0x29Cfa909515Cece341f6E8149026c9D7861a04BF
 
 ```solidity
 // 1. Approve HORIZON tokens
-HorizonToken horizon = HorizonToken(0x29Cfa909515Cece341f6E8149026c9D7861a04BF);
+HorizonToken horizon = HorizonToken(0x5b2ba38272125bd1dcde41f1a88d98c2f5c14444);
 horizon.approve(0xf3f68A76D42679E8b3371bC26B75F7F26E97A10C, 10000 ether);
 
 // 2. Create market
