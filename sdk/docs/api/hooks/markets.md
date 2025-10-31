@@ -202,6 +202,158 @@ function CreateMarketForm() {
 }
 ```
 
+## useUploadMetadata
+
+Upload market metadata to IPFS for use when creating markets.
+
+### Import
+
+```tsx
+import { useUploadMetadata } from '@project-gamma/react-sdk';
+```
+
+### Usage
+
+```tsx
+const { mutate: uploadMetadata, isLoading, data } = useUploadMetadata();
+
+uploadMetadata({
+  question: 'Will BTC hit $100k?',
+  description: 'Bitcoin price prediction market',
+  category: 'crypto',
+});
+```
+
+### Parameters
+
+```tsx
+interface UseUploadMetadataParams {
+  question: string;           // Market question
+  description?: string;        // Optional market description
+  category: string;            // Market category
+  provider?: IPFSProvider;     // Optional: 'pinata' | 'web3.storage' | 'public'
+  pinataJwt?: string;          // Optional: Override Pinata JWT (overrides config)
+}
+```
+
+### Returns
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `mutate` | `(params: UseUploadMetadataParams) => void` | Function to upload metadata |
+| `isLoading` | `boolean` | Upload pending state |
+| `isSuccess` | `boolean` | Upload success state |
+| `data` | `IPFSUploadResult \| undefined` | Upload result with IPFS hash and URL |
+| `error` | `Error \| null` | Error object if upload failed |
+
+### IPFSUploadResult
+
+```tsx
+interface IPFSUploadResult {
+  hash: string;              // IPFS hash
+  url: string;              // Full IPFS URL (ipfs://hash)
+  gatewayUrl?: string;      // HTTP gateway URL for easy access
+}
+```
+
+### Pinata JWT Priority
+
+The Pinata JWT is resolved in the following priority order:
+
+1. **Hook parameter** (`pinataJwt` in `UseUploadMetadataParams`) - Highest priority
+2. **Provider config** (`pinataJwt` in `GammaProvider`)
+3. **Environment variables** (`VITE_PINATA_JWT`, `NEXT_PUBLIC_PINATA_JWT`, or `PINATA_JWT`)
+
+### Examples
+
+#### Basic Upload
+
+```tsx
+function CreateMarketForm() {
+  const { mutate: uploadMetadata, isLoading, data } = useUploadMetadata();
+
+  const handleUpload = () => {
+    uploadMetadata({
+      question: 'Will BTC hit $100k by end of 2024?',
+      description: 'Bitcoin price prediction market',
+      category: 'crypto',
+    });
+  };
+
+  return (
+    <div>
+      <button onClick={handleUpload} disabled={isLoading}>
+        {isLoading ? 'Uploading...' : 'Upload Metadata'}
+      </button>
+      {data && (
+        <div>
+          <p>IPFS Hash: {data.hash}</p>
+          <p>IPFS URL: {data.url}</p>
+          <a href={data.gatewayUrl} target="_blank" rel="noopener noreferrer">
+            View on IPFS Gateway
+          </a>
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+#### Upload with Custom JWT
+
+```tsx
+// Override provider config for this specific upload
+uploadMetadata({
+  question: 'Will ETH hit $5000?',
+  category: 'crypto',
+  pinataJwt: 'custom-jwt-token',
+});
+```
+
+#### Complete Market Creation Flow
+
+```tsx
+import { useUploadMetadata, useCreateMarket } from '@project-gamma/react-sdk';
+import { parseUnits } from 'viem';
+import { useEffect } from 'react';
+
+function CreateMarketFlow() {
+  const { mutate: uploadMetadata, data: ipfsData, isLoading: isUploading } = useUploadMetadata();
+  const { write: createMarket, isLoading: isCreating } = useCreateMarket();
+
+  const handleCreateMarket = () => {
+    // Step 1: Upload metadata to IPFS
+    uploadMetadata({
+      question: 'Will BTC hit $100k?',
+      description: 'Bitcoin price prediction',
+      category: 'crypto',
+    });
+  };
+
+  // Step 2: When upload succeeds, create market with IPFS URI
+  useEffect(() => {
+    if (ipfsData) {
+      createMarket({
+        collateralToken: '0x...', // USDC address
+        category: 'crypto',
+        metadataURI: ipfsData.url, // Use IPFS URL from upload
+        endTime: BigInt(Math.floor(Date.now() / 1000) + 86400 * 30),
+        creatorStake: parseUnits('1000', 18),
+      });
+    }
+  }, [ipfsData, createMarket]);
+
+  return (
+    <button 
+      onClick={handleCreateMarket} 
+      disabled={isUploading || isCreating}
+    >
+      {isUploading ? 'Uploading...' : isCreating ? 'Creating...' : 'Create Market'}
+    </button>
+  );
+}
+```
+
 ## Market Types
 
 ### Market

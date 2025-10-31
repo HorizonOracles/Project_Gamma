@@ -33,6 +33,7 @@ import { GammaProvider } from '@project-gamma/react-sdk';
 | Prop | Type | Description |
 |------|------|-------------|
 | `oracleApiUrl` | `string` | Oracle API endpoint URL |
+| `pinataJwt` | `string` | Pinata JWT token for IPFS storage (optional) |
 | `marketFactoryAddress` | `Address` | Override default MarketFactory address |
 | `horizonTokenAddress` | `Address` | Override default HorizonToken address |
 | `outcomeTokenAddress` | `Address` | Override default OutcomeToken address |
@@ -57,6 +58,40 @@ import { GammaProvider } from '@project-gamma/react-sdk';
 
 Testnet contracts must be deployed before use. Addresses will be updated once deployed.
 
+## IPFS Storage Configuration
+
+The SDK supports uploading market metadata to IPFS using Pinata. You can configure Pinata JWT in three ways (in priority order):
+
+1. **Via Provider Prop** (recommended for app-wide configuration):
+```tsx
+<GammaProvider
+  chainId={56}
+  pinataJwt="your-pinata-jwt-token"
+>
+  <App />
+</GammaProvider>
+```
+
+2. **Via Environment Variables**:
+```bash
+VITE_PINATA_JWT=your-pinata-jwt-token  # For Vite projects
+NEXT_PUBLIC_PINATA_JWT=your-pinata-jwt-token  # For Next.js projects
+PINATA_JWT=your-pinata-jwt-token  # For Node.js environments
+```
+
+3. **Via Hook Parameter** (for per-upload overrides):
+```tsx
+const { mutate: uploadMetadata } = useUploadMetadata();
+
+uploadMetadata({
+  question: 'Will BTC hit $100k?',
+  category: 'crypto',
+  pinataJwt: 'custom-jwt-token', // Overrides config
+});
+```
+
+**Priority Order**: Hook parameter > Provider config > Environment variables
+
 ## Environment Variables
 
 You can also configure the SDK using environment variables:
@@ -64,6 +99,7 @@ You can also configure the SDK using environment variables:
 ```bash
 CHAIN_ID=56
 ORACLE_API_URL=https://api.projectgamma.io
+PINATA_JWT=your-pinata-jwt-token  # Optional: for IPFS storage
 MARKET_FACTORY_ADDRESS=0x...
 # ... other addresses
 ```
@@ -104,6 +140,18 @@ function MyComponent() {
   oracleApiUrl="https://api.projectgamma.io"
   marketFactoryAddress="0x..."
   horizonTokenAddress="0x..."
+>
+  <App />
+</GammaProvider>
+```
+
+### With IPFS Storage Configuration
+
+```tsx
+<GammaProvider
+  chainId={56}
+  oracleApiUrl="https://api.projectgamma.io"
+  pinataJwt="your-pinata-jwt-token"
 >
   <App />
 </GammaProvider>

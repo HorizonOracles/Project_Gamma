@@ -77,6 +77,7 @@ function App() {
         <GammaProvider
           chainId={56}
           oracleApiUrl="https://api.projectgamma.io"
+          pinataJwt="your-pinata-jwt-token" // Optional: for IPFS storage
         >
           {/* Your app */}
         </GammaProvider>
@@ -85,6 +86,8 @@ function App() {
   );
 }
 ```
+
+**Note**: The `pinataJwt` prop is optional. If provided, it will be used for IPFS uploads when creating markets. You can also configure it via environment variables or pass it directly to hooks.
 
 ### 3. Use SDK Hooks
 

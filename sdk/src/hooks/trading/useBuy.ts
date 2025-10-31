@@ -71,10 +71,27 @@ export function useBuy(marketId: number) {
       const amm = new MarketAMM(publicClient, ammAddress);
       const outcome: MarketOutcome = params.outcomeId === 0 ? 'YES' : 'NO';
 
+      // Check liquidity before attempting trade
+      const liquidity = await amm.getLiquidity(BigInt(marketId));
+      if (liquidity.yes === 0n || liquidity.no === 0n) {
+        throw new Error('Market has no liquidity. Please add liquidity before trading.');
+      }
+
       // Get quote to calculate minimum amount out
       const quote = await amm.getBuyQuote(params.amount, outcome, address);
+      
+      // Validate quote is valid
+      if (quote.tokensOut === 0n) {
+        throw new Error('Invalid quote: tokensOut is zero. The market may have insufficient liquidity for this trade amount.');
+      }
+
       const slippageBps = Math.round((params.slippage || 0.5) * 100); // Convert to basis points
       const minAmountOut = applySlippageTolerance(quote.tokensOut, slippageBps);
+
+      // Validate minAmountOut is not zero
+      if (minAmountOut === 0n) {
+        throw new Error('Minimum tokens out is zero. Try reducing slippage tolerance or trade amount.');
+      }
 
       // Execute trade via walletClient.writeContract
       const functionName = outcome === 'YES' ? 'buyYes' : 'buyNo';

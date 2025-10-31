@@ -18,7 +18,10 @@ export interface UseMarketsFilters {
 }
 
 /**
- * Hook to fetch markets with optional filters
+ * Hook to fetch markets with optional filters.
+ * 
+ * Following Wagmi best practices - hooks are called unconditionally
+ * and will throw if used outside WagmiProvider context.
  * 
  * @example
  * ```tsx
@@ -27,6 +30,8 @@ export interface UseMarketsFilters {
  *   status: MarketStatus.Active,
  * });
  * ```
+ * 
+ * @see https://wagmi.sh/react/api/WagmiProvider
  */
 export function useMarkets(filters?: UseMarketsFilters) {
   const config = useGammaConfig();
@@ -59,20 +64,26 @@ export function useMarkets(filters?: UseMarketsFilters) {
       const marketStructs = await marketFactory.getMarkets(BigInt(offset), BigInt(limit));
 
       // Convert to Market format
-      const markets: Market[] = marketStructs.map((struct, index) => ({
-        id: Number(struct.id),
-        creator: struct.creator,
-        amm: struct.amm,
-        collateralToken: struct.collateralToken,
-        closeTime: Number(struct.closeTime),
-        category: struct.category,
-        metadataURI: struct.metadataURI,
-        status: struct.status as MarketStatus,
-        // Additional fields
-        marketId: struct.id,
-        marketAddress: struct.amm,
-        endTime: struct.closeTime,
-      }));
+      const markets: Market[] = marketStructs.map((struct, index) => {
+        // Extract question from metadataURI (remove ipfs:// prefix if present)
+        const question = struct.metadataURI?.replace(/^ipfs:\/\//, '') || undefined;
+        
+        return {
+          id: Number(struct.id),
+          creator: struct.creator,
+          amm: struct.amm,
+          collateralToken: struct.collateralToken,
+          closeTime: Number(struct.closeTime),
+          category: struct.category,
+          metadataURI: struct.metadataURI,
+          status: struct.status as MarketStatus,
+          // Additional fields
+          marketId: struct.id,
+          marketAddress: struct.amm,
+          endTime: struct.closeTime,
+          question, // Populate question field from metadataURI
+        };
+      });
 
       // Apply filters in memory (can be optimized with subgraph later)
       let filtered = markets;
