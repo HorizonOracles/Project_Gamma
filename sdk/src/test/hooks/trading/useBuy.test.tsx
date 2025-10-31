@@ -85,6 +85,11 @@ describe('useBuy', () => {
       fee: 50000000000000000n,
     };
 
+    const mockLiquidity = {
+      yes: 1000000000000000000n,
+      no: 1000000000000000000n,
+    };
+
     const MarketFactoryModule = await import('../../../contracts/MarketFactory');
     const mockMarketFactory = {
       getMarket: vi.fn().mockResolvedValue(mockMarketInfo),
@@ -94,6 +99,7 @@ describe('useBuy', () => {
     const MarketAMMModule = await import('../../../contracts/MarketAMM');
     const mockMarketAMM = {
       getBuyQuote: vi.fn().mockResolvedValue(mockQuote),
+      getLiquidity: vi.fn().mockResolvedValue(mockLiquidity),
     };
     vi.mocked(MarketAMMModule.MarketAMM).mockImplementation(() => mockMarketAMM as any);
 
@@ -177,6 +183,11 @@ describe('useBuy', () => {
       fee: 0n,
     };
 
+    const mockLiquidity = {
+      yes: 1000000000000000000n,
+      no: 1000000000000000000n,
+    };
+
     const MarketFactoryModule = await import('../../../contracts/MarketFactory');
     const mockMarketFactory = {
       getMarket: vi.fn().mockResolvedValue(mockMarketInfo),
@@ -186,6 +197,7 @@ describe('useBuy', () => {
     const MarketAMMModule = await import('../../../contracts/MarketAMM');
     const mockMarketAMM = {
       getBuyQuote: vi.fn().mockResolvedValue(mockQuote),
+      getLiquidity: vi.fn().mockResolvedValue(mockLiquidity),
     };
     vi.mocked(MarketAMMModule.MarketAMM).mockImplementation(() => mockMarketAMM as any);
 
