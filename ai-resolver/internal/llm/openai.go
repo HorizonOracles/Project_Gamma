@@ -13,10 +13,25 @@ import (
 
 // OpenAIPipeline implements the multi-pass analysis pipeline using OpenAI with web search
 type OpenAIPipeline struct {
-	apiKey     string
-	model      string
-	httpClient *http.Client
-	baseURL    string
+	apiKey       string
+	model        string
+	httpClient   *http.Client
+	baseURL      string
+	toolRegistry ToolRegistry // Optional tool registry for extensible tool support
+}
+
+// ToolRegistry interface for managing tools
+type ToolRegistry interface {
+	Get(name string) (Tool, bool)
+	List() []Tool
+}
+
+// Tool interface for tool execution
+type Tool interface {
+	Name() string
+	Description() string
+	ToOpenAIFormat() map[string]any
+	Execute(ctx context.Context, arguments map[string]any) (map[string]any, error)
 }
 
 // NewOpenAIPipeline creates a new OpenAI-based pipeline
@@ -27,8 +42,14 @@ func NewOpenAIPipeline(apiKey, model string) *OpenAIPipeline {
 		httpClient: &http.Client{
 			Timeout: 120 * time.Second, // Increased for web search
 		},
-		baseURL: "https://api.openai.com/v1/chat/completions",
+		baseURL:      "https://api.openai.com/v1/chat/completions",
+		toolRegistry: nil, // No tools by default
 	}
+}
+
+// SetToolRegistry sets the tool registry for this pipeline
+func (p *OpenAIPipeline) SetToolRegistry(registry ToolRegistry) {
+	p.toolRegistry = registry
 }
 
 // AnalyzeMarket performs the complete multi-pass analysis with integrated web search
@@ -270,72 +291,146 @@ func (p *OpenAIPipeline) callOpenAIWithWebSearch(ctx context.Context, prompt str
 	// Use the responses API endpoint
 	responsesURL := "https://api.openai.com/v1/responses"
 
-	reqBody := map[string]any{
-		"model": p.model,
-		"input": prompt,
-		"tools": []map[string]string{
+	// Build tools array - use registry if available, otherwise default to web search
+	var tools []map[string]any
+	if p.toolRegistry != nil {
+		// Use tools from registry
+		for _, tool := range p.toolRegistry.List() {
+			tools = append(tools, tool.ToOpenAIFormat())
+		}
+	} else {
+		// Default: just web search
+		tools = []map[string]any{
 			{"type": "web_search_preview"},
-		},
-	}
-
-	jsonData, err := json.Marshal(reqBody)
-	if err != nil {
-		return "", fmt.Errorf("failed to marshal request: %w", err)
-	}
-
-	req, err := http.NewRequestWithContext(ctx, "POST", responsesURL, bytes.NewBuffer(jsonData))
-	if err != nil {
-		return "", fmt.Errorf("failed to create request: %w", err)
-	}
-
-	req.Header.Set("Authorization", "Bearer "+p.apiKey)
-	req.Header.Set("Content-Type", "application/json")
-
-	resp, err := p.httpClient.Do(req)
-	if err != nil {
-		return "", fmt.Errorf("request failed: %w", err)
-	}
-	defer resp.Body.Close()
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return "", fmt.Errorf("failed to read response: %w", err)
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("API returned status %d: %s", resp.StatusCode, string(body))
-	}
-
-	var apiResp openAIResponsesAPIResponse
-	if err := json.Unmarshal(body, &apiResp); err != nil {
-		return "", fmt.Errorf("failed to parse response: %w", err)
-	}
-
-	if len(apiResp.Output) == 0 {
-		return "", fmt.Errorf("no output in response")
-	}
-
-	// Extract text from message outputs
-	var resultText string
-	for _, output := range apiResp.Output {
-		if output.Type == "message" && len(output.Content) > 0 {
-			for _, content := range output.Content {
-				if content.Type == "output_text" {
-					resultText = content.Text
-					break
-				}
-			}
-			if resultText != "" {
-				break
-			}
 		}
 	}
 
-	if resultText == "" {
-		return "", fmt.Errorf("no text content found in response")
+	reqBody := map[string]any{
+		"model": p.model,
+		"input": prompt,
+		"tools": tools,
 	}
 
-	return resultText, nil
+	// Tool execution loop - max 10 iterations to prevent infinite loops
+	const maxToolIterations = 10
+	for iteration := 0; iteration < maxToolIterations; iteration++ {
+		jsonData, err := json.Marshal(reqBody)
+		if err != nil {
+			return "", fmt.Errorf("failed to marshal request: %w", err)
+		}
+
+		req, err := http.NewRequestWithContext(ctx, "POST", responsesURL, bytes.NewBuffer(jsonData))
+		if err != nil {
+			return "", fmt.Errorf("failed to create request: %w", err)
+		}
+
+		req.Header.Set("Authorization", "Bearer "+p.apiKey)
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := p.httpClient.Do(req)
+		if err != nil {
+			return "", fmt.Errorf("request failed: %w", err)
+		}
+
+		body, err := io.ReadAll(resp.Body)
+		resp.Body.Close()
+		if err != nil {
+			return "", fmt.Errorf("failed to read response: %w", err)
+		}
+
+		if resp.StatusCode != http.StatusOK {
+			return "", fmt.Errorf("API returned status %d: %s", resp.StatusCode, string(body))
+		}
+
+		var apiResp openAIResponsesAPIResponse
+		if err := json.Unmarshal(body, &apiResp); err != nil {
+			return "", fmt.Errorf("failed to parse response: %w", err)
+		}
+
+		if len(apiResp.Output) == 0 {
+			return "", fmt.Errorf("no output in response")
+		}
+
+		// Check for tool calls
+		var toolCalls []ToolCall
+		for _, output := range apiResp.Output {
+			if len(output.ToolCalls) > 0 {
+				toolCalls = append(toolCalls, output.ToolCalls...)
+			}
+		}
+
+		// If there are tool calls, execute them and continue the loop
+		if len(toolCalls) > 0 {
+			if p.toolRegistry == nil {
+				return "", fmt.Errorf("received tool calls but no tool registry is configured")
+			}
+
+			// Execute each tool call
+			toolResults := make([]map[string]any, 0, len(toolCalls))
+			for _, toolCall := range toolCalls {
+				if toolCall.Type != "function" {
+					continue // Skip non-function tool calls
+				}
+
+				// Get the tool from registry
+				tool, ok := p.toolRegistry.Get(toolCall.Function.Name)
+				if !ok {
+					return "", fmt.Errorf("tool %s not found in registry", toolCall.Function.Name)
+				}
+
+				// Parse arguments
+				var args map[string]any
+				if err := json.Unmarshal([]byte(toolCall.Function.Arguments), &args); err != nil {
+					return "", fmt.Errorf("failed to parse tool arguments: %w", err)
+				}
+
+				// Execute the tool
+				result, err := tool.Execute(ctx, args)
+				if err != nil {
+					// Return error as tool result so LLM can see it
+					result = map[string]any{
+						"error": err.Error(),
+					}
+				}
+
+				// Format tool result for next API call
+				resultJSON, _ := json.Marshal(result)
+				toolResults = append(toolResults, map[string]any{
+					"tool_call_id": toolCall.ID,
+					"role":         "tool",
+					"content":      string(resultJSON),
+				})
+			}
+
+			// Update request body with tool results for next iteration
+			reqBody["tool_results"] = toolResults
+			continue
+		}
+
+		// No tool calls - extract text from message outputs
+		var resultText string
+		for _, output := range apiResp.Output {
+			if output.Type == "message" && len(output.Content) > 0 {
+				for _, content := range output.Content {
+					if content.Type == "output_text" {
+						resultText = content.Text
+						break
+					}
+				}
+				if resultText != "" {
+					break
+				}
+			}
+		}
+
+		if resultText == "" {
+			return "", fmt.Errorf("no text content found in response")
+		}
+
+		return resultText, nil
+	}
+
+	return "", fmt.Errorf("exceeded maximum tool call iterations (%d)", maxToolIterations)
 }
 
 // callOpenAIChat makes a standard chat completion request (for non-search steps)
@@ -406,11 +501,12 @@ type openAIResponsesAPIResponse struct {
 }
 
 type openAIResponsesAPIOutput struct {
-	ID      string                      `json:"id"`
-	Type    string                      `json:"type"`
-	Status  string                      `json:"status"`
-	Content []openAIResponsesAPIContent `json:"content,omitempty"`
-	Role    string                      `json:"role,omitempty"`
+	ID        string                      `json:"id"`
+	Type      string                      `json:"type"`
+	Status    string                      `json:"status"`
+	Content   []openAIResponsesAPIContent `json:"content,omitempty"`
+	Role      string                      `json:"role,omitempty"`
+	ToolCalls []ToolCall                  `json:"tool_calls,omitempty"` // For function call outputs
 }
 
 type openAIResponsesAPIContent struct {
@@ -425,6 +521,16 @@ type openAIResponsesAPIAnnotation struct {
 	EndIndex   int    `json:"end_index"`
 	Title      string `json:"title"`
 	URL        string `json:"url"`
+}
+
+// ToolCall represents a function call request from the LLM
+type ToolCall struct {
+	ID       string `json:"id"`
+	Type     string `json:"type"` // Should be "function"
+	Function struct {
+		Name      string `json:"name"`
+		Arguments string `json:"arguments"` // JSON string
+	} `json:"function"`
 }
 
 // openAIChatResponse represents OpenAI Chat API response

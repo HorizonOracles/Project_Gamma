@@ -25,6 +25,9 @@ type Config struct {
 	OpenAIAPIKey string
 	OpenAIModel  string
 
+	// External API settings
+	BSCScanAPIKey string
+
 	// Signer settings
 	SignerPrivateKey string // For local/testing
 	UseKMS           bool
@@ -57,6 +60,7 @@ func LoadFromEnv() (*Config, error) {
 		MarketFactoryAddr:    getEnv("MARKET_FACTORY_ADDR", ""),
 		OpenAIAPIKey:         getEnv("OPENAI_API_KEY", ""),
 		OpenAIModel:          getEnv("OPENAI_MODEL", "gpt-4-turbo-preview"),
+		BSCScanAPIKey:        getEnv("BSCSCAN_API_KEY", ""),
 		SignerPrivateKey:     getEnv("SIGNER_PRIVATE_KEY", ""),
 		UseKMS:               getEnvBool("USE_KMS", false),
 		KMSKeyID:             getEnv("KMS_KEY_ID", ""),

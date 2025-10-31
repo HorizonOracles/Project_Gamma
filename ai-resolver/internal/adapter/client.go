@@ -264,3 +264,8 @@ func (c *Client) newTransactor(ctx context.Context) (*bind.TransactOpts, error) 
 
 	return auth, nil
 }
+
+// GetETHClient returns the underlying ethclient.Client
+func (c *Client) GetETHClient() *ethclient.Client {
+	return c.eth
+}

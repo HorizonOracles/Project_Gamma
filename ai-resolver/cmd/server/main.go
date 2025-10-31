@@ -16,10 +16,12 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/project-gamma/ai-resolver/internal/adapter"
 	"github.com/project-gamma/ai-resolver/internal/config"
 	"github.com/project-gamma/ai-resolver/internal/eip712"
 	"github.com/project-gamma/ai-resolver/internal/llm"
+	"github.com/project-gamma/ai-resolver/internal/tools"
 	"github.com/project-gamma/ai-resolver/pkg/abi"
 )
 
@@ -44,12 +46,71 @@ func main() {
 		TokenAddress:      cfg.TokenAddr,
 	})
 	if err != nil {
-		log.Fatalf("Failed to initialize blockchain client: %v", err)
+		log.Fatalf("Failed to initialize client: %v", err)
 	}
 	defer client.Close()
 
 	// Initialize LLM pipeline with integrated web search
 	llmPipeline := llm.NewOpenAIPipeline(cfg.OpenAIAPIKey, cfg.OpenAIModel)
+
+	// Initialize tool registry and register built-in tools
+	toolRegistry := tools.NewRegistry()
+
+	// Register web search tool
+	webSearchTool := tools.NewWebSearchTool()
+	if err := toolRegistry.Register(webSearchTool); err != nil {
+		log.Fatalf("Failed to register web search tool: %v", err)
+	}
+
+	// Create adapter for market data client
+	marketDataAdapter := &marketDataClientAdapter{client: client}
+
+	// Register market data tool
+	marketDataTool := tools.NewMarketDataTool(marketDataAdapter)
+	if err := toolRegistry.Register(marketDataTool); err != nil {
+		log.Fatalf("Failed to register market data tool: %v", err)
+	}
+
+	// Register calculator tool
+	calculatorTool := tools.NewCalculatorTool()
+	if err := toolRegistry.Register(calculatorTool); err != nil {
+		log.Fatalf("Failed to register calculator tool: %v", err)
+	}
+
+	// Register datetime tool
+	datetimeTool := tools.NewDateTimeTool()
+	if err := toolRegistry.Register(datetimeTool); err != nil {
+		log.Fatalf("Failed to register datetime tool: %v", err)
+	}
+
+	// Register BSCScan tool (if API key provided)
+	if cfg.BSCScanAPIKey != "" {
+		bscscanTool := tools.NewBSCScanTool(cfg.BSCScanAPIKey)
+		if err := toolRegistry.Register(bscscanTool); err != nil {
+			log.Fatalf("Failed to register bscscan tool: %v", err)
+		}
+		log.Printf("BSCScan tool registered")
+	} else {
+		log.Printf("BSCScan API key not provided, skipping BSCScan tool registration")
+	}
+
+	// Register PancakeSwap tool (adapter implements PancakeSwapClient interface)
+	pancakeswapAdapter := &pancakeswapClientAdapter{client: client}
+	pancakeswapTool := tools.NewPancakeSwapTool(pancakeswapAdapter)
+	if err := toolRegistry.Register(pancakeswapTool); err != nil {
+		log.Fatalf("Failed to register pancakeswap tool: %v", err)
+	}
+
+	// Set the tool registry on the pipeline
+	llmPipeline.SetToolRegistry(&toolRegistryAdapter{registry: toolRegistry})
+
+	log.Printf("Registered %d tools: %v", toolRegistry.Count(), func() []string {
+		names := make([]string, 0)
+		for _, tool := range toolRegistry.List() {
+			names = append(names, tool.Name())
+		}
+		return names
+	}())
 
 	// Parse private key for signing
 	privateKey, err := crypto.HexToECDSA(cfg.SignerPrivateKey)
@@ -389,4 +450,129 @@ func (s *Server) corsMiddleware(next http.Handler) http.Handler {
 
 		next.ServeHTTP(w, r)
 	})
+}
+
+// marketDataClientAdapter adapts adapter.Client to tools.MarketDataClient interface
+type marketDataClientAdapter struct {
+	client *adapter.Client
+}
+
+func (a *marketDataClientAdapter) GetMarket(ctx context.Context, marketID *big.Int) (tools.MarketInfo, error) {
+	market, err := a.client.GetMarket(ctx, marketID)
+	if err != nil {
+		return tools.MarketInfo{}, err
+	}
+	return tools.MarketInfo{
+		ID:              market.ID,
+		Creator:         market.Creator,
+		AMM:             market.AMM,
+		CollateralToken: market.CollateralToken,
+		CloseTime:       market.CloseTime,
+		Category:        market.Category,
+		MetadataURI:     market.MetadataURI,
+		CreatorStake:    market.CreatorStake,
+		StakeRefunded:   market.StakeRefunded,
+		Status:          market.Status,
+	}, nil
+}
+
+func (a *marketDataClientAdapter) GetBalance(ctx context.Context) (*big.Int, error) {
+	return a.client.GetBalance(ctx)
+}
+
+func (a *marketDataClientAdapter) GetCurrentBlockTimestamp(ctx context.Context) (int64, error) {
+	return a.client.GetCurrentBlockTimestamp(ctx)
+}
+
+// pancakeswapClientAdapter adapts adapter.Client to tools.PancakeSwapClient interface
+type pancakeswapClientAdapter struct {
+	client *adapter.Client
+}
+
+func (a *pancakeswapClientAdapter) GetETHClient() *ethclient.Client {
+	return a.client.GetETHClient()
+}
+
+// toolRegistryAdapter adapts tools.Registry to llm.ToolRegistry interface
+type toolRegistryAdapter struct {
+	registry tools.Registry
+}
+
+func (a *toolRegistryAdapter) Get(name string) (llm.Tool, bool) {
+	tool, ok := a.registry.Get(name)
+	if !ok {
+		return nil, false
+	}
+	return &toolAdapter{tool: tool}, true
+}
+
+func (a *toolRegistryAdapter) List() []llm.Tool {
+	toolsList := a.registry.List()
+	result := make([]llm.Tool, len(toolsList))
+	for i, tool := range toolsList {
+		result[i] = &toolAdapter{tool: tool}
+	}
+	return result
+}
+
+// toolAdapter adapts tools.Tool to llm.Tool interface
+type toolAdapter struct {
+	tool tools.Tool
+}
+
+func (a *toolAdapter) Name() string {
+	return a.tool.Name()
+}
+
+func (a *toolAdapter) Description() string {
+	return a.tool.Description()
+}
+
+func (a *toolAdapter) ToOpenAIFormat() map[string]any {
+	// Check if tool has ToOpenAIFormat method (e.g., *BaseTool)
+	if bt, ok := a.tool.(*tools.BaseTool); ok {
+		return bt.ToOpenAIFormat()
+	}
+
+	// Fallback: construct format manually
+	format := map[string]any{
+		"type": string(a.tool.Type()),
+		"name": a.tool.Name(),
+	}
+	if a.tool.Type() == tools.ToolTypeFunction {
+		format["function"] = map[string]any{
+			"name":        a.tool.Name(),
+			"description": a.tool.Description(),
+		}
+		if schema := a.tool.Schema(); schema != nil {
+			format["function"].(map[string]any)["parameters"] = schema.ToOpenAIFormat()
+		}
+	} else if a.tool.Type() == tools.ToolTypeCustom {
+		format["description"] = a.tool.Description()
+	}
+	return format
+}
+
+func (a *toolAdapter) Execute(ctx context.Context, arguments map[string]any) (map[string]any, error) {
+	// Create tool input from arguments
+	input := tools.ToolInput{
+		CallID:    "llm_call", // Generic ID for LLM-initiated calls
+		Arguments: arguments,
+	}
+
+	// Execute the tool
+	output, err := a.tool.Execute(ctx, input)
+	if err != nil {
+		return nil, err
+	}
+
+	// Return the data from the output
+	if dataMap, ok := output.Data.(map[string]any); ok {
+		return dataMap, nil
+	}
+
+	// If data is not a map, wrap it
+	return map[string]any{
+		"result": output.Data,
+	}, nil
 }
