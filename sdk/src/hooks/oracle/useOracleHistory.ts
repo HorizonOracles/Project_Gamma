@@ -9,20 +9,21 @@ import { createOracleApiClient } from '../../utils/api';
 
 /**
  * Hook to get oracle request history for a market
+ * If marketId is undefined, returns an empty array (disabled query)
  * 
  * @example
  * ```tsx
  * const { data: history, isLoading } = useOracleHistory(marketId);
  * ```
  */
-export function useOracleHistory(marketId: number | undefined) {
+export function useOracleHistory(marketId?: number | undefined) {
   const config = useGammaConfig();
 
   return useQuery({
     queryKey: ['oracleHistory', marketId],
     queryFn: async (): Promise<OracleRequest[]> => {
       if (!marketId) {
-        throw new Error('Market ID is required');
+        return [];
       }
 
       if (!config.oracleApiUrl) {

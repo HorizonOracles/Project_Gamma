@@ -11,6 +11,11 @@ export { useMarkets } from './hooks/markets/useMarkets';
 export type { UseMarketsFilters } from './hooks/markets/useMarkets';
 export { useMarket } from './hooks/markets/useMarket';
 export { useCreateMarket } from './hooks/markets/useCreateMarket';
+export { useMinCreatorStake } from './hooks/markets/useMinCreatorStake';
+export { useUploadMetadata } from './hooks/markets/useUploadMetadata';
+export type { UseUploadMetadataParams } from './hooks/markets/useUploadMetadata';
+export { useIPFSMetadata } from './hooks/markets/useIPFSMetadata';
+export { useHasLiquidity } from './hooks/markets/useHasLiquidity';
 
 // Trading Hooks
 export { useBuy } from './hooks/trading/useBuy';
@@ -50,6 +55,7 @@ export { useOracleHistory } from './hooks/oracle/useOracleHistory';
 export { useBalance, useOutcomeBalance } from './hooks/tokens/useBalance';
 export { useApprove } from './hooks/tokens/useApprove';
 export type { ApproveParams } from './hooks/tokens/useApprove';
+export { useAllowance } from './hooks/tokens/useAllowance';
 export { useRedeem } from './hooks/tokens/useRedeem';
 export type { RedeemParams } from './hooks/tokens/useRedeem';
 
@@ -90,6 +96,19 @@ export {
   getOutcomeFromTokenId,
   applySlippageTolerance,
 } from './utils';
+
+// IPFS utilities
+export {
+  uploadMarketMetadata,
+  uploadToPinata,
+  uploadToWeb3Storage,
+  uploadToPublicIPFS,
+} from './utils/ipfs';
+export type {
+  MarketMetadata,
+  IPFSUploadResult,
+  IPFSProvider,
+} from './utils/ipfs';
 
 // API Client
 export { createOracleApiClient } from './utils/api';

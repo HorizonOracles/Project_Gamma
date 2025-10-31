@@ -162,7 +162,7 @@ describe('useCreateMarket', () => {
 
     expect(result.current.error).toBeDefined();
     if (result.current.error instanceof Error) {
-      expect(result.current.error.message).toContain('Wallet not connected');
+      expect(result.current.error.message).toContain('Wallet client not available');
     }
   });
 });

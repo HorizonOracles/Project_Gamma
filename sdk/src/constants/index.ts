@@ -26,6 +26,8 @@ export const DEFAULT_CONTRACTS = {
     feeSplitter: '0x275017E98adF33051BbF477fe1DD197F681d4eF1' as Address,
     resolutionModule: '0xF0CF4C741910cB48AC596F620a0AE892Cd247838' as Address,
     aiOracleAdapter: '0x8773B8C5a55390DAbAD33dB46a13cd59Fb05cF93' as Address,
+    // USDC on BNB Chain Mainnet (commonly used as collateral token)
+    usdc: '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d' as Address,
   },
   [BNB_CHAIN.TESTNET]: {
     // Placeholder addresses - update with actual testnet contract addresses once deployed
@@ -37,6 +39,8 @@ export const DEFAULT_CONTRACTS = {
     feeSplitter: '0x0000000000000000000000000000000000000000' as Address,
     resolutionModule: '0x0000000000000000000000000000000000000000' as Address,
     aiOracleAdapter: '0x0000000000000000000000000000000000000000' as Address,
+    // USDC on BNB Chain Testnet
+    usdc: '0x64544969ed7EBf5f083679233325356EbE738930' as Address,
   },
 } as const;
 

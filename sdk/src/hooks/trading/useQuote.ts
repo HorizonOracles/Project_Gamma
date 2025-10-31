@@ -40,8 +40,13 @@ export function useQuote(params: QuoteParams | undefined) {
   const chainId = useChainId();
   const { address } = useAccount();
 
+  // Create serializable query key (BigInt must be converted to string)
+  const queryKey = params 
+    ? ['quote', params.marketId, params.outcomeId, params.amount.toString(), params.isBuy, chainId, address]
+    : ['quote', chainId, address];
+
   return useQuery({
-    queryKey: ['quote', params, chainId, address],
+    queryKey,
     queryFn: async (): Promise<TradeQuote> => {
       if (!params) {
         throw new Error('Quote parameters are required');

@@ -16,6 +16,7 @@ interface GammaConfig {
   feeSplitterAddress?: Address;
   resolutionModuleAddress?: Address;
   aiOracleAdapterAddress?: Address;
+  pinataJwt?: string; // Optional Pinata JWT for IPFS storage
 }
 
 interface GammaContextValue {
@@ -35,6 +36,7 @@ interface GammaProviderProps {
   feeSplitterAddress?: Address;
   resolutionModuleAddress?: Address;
   aiOracleAdapterAddress?: Address;
+  pinataJwt?: string; // Optional Pinata JWT for IPFS storage
 }
 
 /**
@@ -46,6 +48,7 @@ interface GammaProviderProps {
  *   <GammaProvider
  *     chainId={56}
  *     oracleApiUrl="https://api.projectgamma.io"
+ *     pinataJwt="your-pinata-jwt-token" // Optional: for IPFS storage
  *   >
  *     <YourApp />
  *   </GammaProvider>
@@ -63,6 +66,7 @@ export function GammaProvider({
   feeSplitterAddress,
   resolutionModuleAddress,
   aiOracleAdapterAddress,
+  pinataJwt,
 }: GammaProviderProps) {
   const config = useMemo<GammaConfig>(
     () => ({
@@ -75,6 +79,7 @@ export function GammaProvider({
       feeSplitterAddress,
       resolutionModuleAddress,
       aiOracleAdapterAddress,
+      pinataJwt,
     }),
     [
       chainId,
@@ -86,9 +91,10 @@ export function GammaProvider({
       feeSplitterAddress,
       resolutionModuleAddress,
       aiOracleAdapterAddress,
+      pinataJwt,
     ]
   );
-
+  
   return (
     <GammaContext.Provider value={{ config }}>
       {children}
@@ -98,6 +104,9 @@ export function GammaProvider({
 
 /**
  * Hook to access Gamma SDK configuration
+ * 
+ * Must be used within GammaProvider, which should be inside WagmiProvider.
+ * Following Wagmi best practices: https://wagmi.sh/react/api/WagmiProvider
  */
 export function useGammaConfig(): GammaConfig {
   const context = useContext(GammaContext);
