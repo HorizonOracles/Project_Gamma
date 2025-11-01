@@ -675,51 +675,6 @@ To report security issues, please use GitHub's security advisory feature or open
 
 ---
 
-## Roadmap
-
-### Phase 1: Core Platform
-
-**Current Focus**
-
-- Smart contract deployment on BNB Chain
-- Basic AI resolver implementation
-- Testnet launch and initial testing
-
-### Phase 2: Enhancement
-
-**Q2 2025**
-
-- X402 payment gateway integration
-- Decentralized application (dApp) interface
-- Custom AI tool registry using Response API
-- Expanded market mechanics:
-  - MultiChoiceMarket (3-8 discrete outcomes)
-  - LimitOrderMarket (professional trading)
-  - PooledLiquidityMarket (concentrated liquidity)
-  - DependentMarket (cascading settlements)
-  - BracketMarket (range predictions)
-  - TrendMarket (time-weighted outcomes)
-
-### Phase 3: Developer Tools
-
-**Q3 2025**
-
-- React SDK for market integration
-- Boilerplate templates with full SDK
-- Comprehensive API documentation
-- Developer tutorials and guides
-
-### Phase 4: Governance & Ecosystem
-
-**Q4 2025**
-
-- HORIZON token governance launch
-- Community proposals system
-- Protocol parameter voting
-- Third-party integrations and partnerships
-
----
-
 ## Contributing
 
 We welcome contributions from the community. Please follow our development guidelines:
