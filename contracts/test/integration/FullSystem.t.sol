@@ -8,7 +8,7 @@ import "../../src/FeeSplitter.sol";
 import "../../src/HorizonPerks.sol";
 
 import "../../src/ResolutionModule.sol";
-import "../../src/MarketAMM.sol";
+import "../../src/markets/BinaryMarket.sol";
 import "../mocks/MockERC20.sol";
 
 /**
@@ -121,11 +121,14 @@ contract FullSystemTest is Test {
 
         // Create market via factory
         MarketFactory.MarketParams memory params = MarketFactory.MarketParams({
+            marketType: 0, // Binary
             collateralToken: address(usdc),
             closeTime: block.timestamp + 30 days,
             category: "politics",
             metadataURI: "ipfs://QmExample123",
-            creatorStake: MIN_STAKE
+            creatorStake: MIN_STAKE,
+            outcomeCount: 2,
+            liquidityParameter: 0
         });
 
         vm.prank(creator1);
@@ -140,7 +143,7 @@ contract FullSystemTest is Test {
         assertNotEq(ammAddress, address(0));
         console.log("AMM deployed at:", ammAddress);
 
-        MarketAMM amm = MarketAMM(ammAddress);
+        BinaryMarket amm = BinaryMarket(ammAddress);
 
         // Approve AMM
         vm.prank(liquidityProvider);
@@ -269,11 +272,14 @@ contract FullSystemTest is Test {
         // Create 3 markets
         for (uint256 i = 0; i < 3; i++) {
             MarketFactory.MarketParams memory params = MarketFactory.MarketParams({
+                marketType: 0, // Binary
                 collateralToken: address(usdc),
                 closeTime: block.timestamp + (i + 1) * 7 days,
                 category: i == 0 ? "politics" : i == 1 ? "sports" : "crypto",
                 metadataURI: string(abi.encodePacked("ipfs://QmMarket", vm.toString(i))),
-                creatorStake: MIN_STAKE
+                creatorStake: MIN_STAKE,
+                outcomeCount: 2,
+                liquidityParameter: 0
             });
 
             vm.prank(i < 2 ? creator1 : creator2);
@@ -288,7 +294,7 @@ contract FullSystemTest is Test {
         // Trade on all markets
         for (uint256 i = 0; i < 3; i++) {
             MarketFactory.Market memory market = factory.getMarket(marketIds[i]);
-            MarketAMM amm = MarketAMM(market.amm);
+            BinaryMarket amm = BinaryMarket(market.amm);
 
             // Approve
             vm.prank(liquidityProvider);
@@ -336,14 +342,14 @@ contract FullSystemTest is Test {
         console.log("\n=== CLAIMING FROM RESOLVED MARKETS ===");
 
         // Fund and claim from market 1
-        MarketAMM(market2.amm).fundRedemptions();
+        BinaryMarket(market2.amm).fundRedemptions();
         vm.prank(trader1);
         uint256 payout1 = outcomeToken.redeem(marketIds[0]);
         console.log("Claimed from market 1:", payout1 / 1e18, "USDC");
 
         // Market 2: Trader1 loses (NO won)
         MarketFactory.Market memory market1 = factory.getMarket(marketIds[1]);
-        MarketAMM(market1.amm).fundRedemptions();
+        BinaryMarket(market1.amm).fundRedemptions();
         vm.prank(trader1);
         vm.expectRevert(OutcomeToken.NoTokensToRedeem.selector);
         outcomeToken.redeem(marketIds[1]);
@@ -363,18 +369,21 @@ contract FullSystemTest is Test {
 
         // Create market
         MarketFactory.MarketParams memory params = MarketFactory.MarketParams({
+            marketType: 0, // Binary
             collateralToken: address(usdc),
             closeTime: block.timestamp + 7 days,
             category: "test",
             metadataURI: "ipfs://QmFeeTest",
-            creatorStake: MIN_STAKE
+            creatorStake: MIN_STAKE,
+            outcomeCount: 2,
+            liquidityParameter: 0
         });
 
         vm.prank(creator1);
         uint256 marketId = factory.createMarket(params);
 
         MarketFactory.Market memory market = factory.getMarket(marketId);
-        MarketAMM amm = MarketAMM(market.amm);
+        BinaryMarket amm = BinaryMarket(market.amm);
 
         // Give trader1 some HORIZON tokens for better protocol/creator split
         horizonToken.transfer(trader1, 50_000 ether); // Tier 2: 2% fee, 6% protocol share
@@ -469,11 +478,14 @@ contract FullSystemTest is Test {
 
         // Create USDC market
         MarketFactory.MarketParams memory params1 = MarketFactory.MarketParams({
+            marketType: 0, // Binary
             collateralToken: address(usdc),
             closeTime: block.timestamp + 7 days,
             category: "test",
             metadataURI: "ipfs://QmUSDC",
-            creatorStake: MIN_STAKE
+            creatorStake: MIN_STAKE,
+            outcomeCount: 2,
+            liquidityParameter: 0
         });
 
         vm.prank(creator1);
@@ -482,11 +494,14 @@ contract FullSystemTest is Test {
 
         // Create DAI market
         MarketFactory.MarketParams memory params2 = MarketFactory.MarketParams({
+            marketType: 0, // Binary
             collateralToken: address(dai),
             closeTime: block.timestamp + 7 days,
             category: "test",
             metadataURI: "ipfs://QmDAI",
-            creatorStake: MIN_STAKE
+            creatorStake: MIN_STAKE,
+            outcomeCount: 2,
+            liquidityParameter: 0
         });
 
         vm.prank(creator2);
@@ -502,7 +517,7 @@ contract FullSystemTest is Test {
         console.log("\n=== TRADING ON DIFFERENT COLLATERAL MARKETS ===");
 
         // Trade on USDC market
-        MarketAMM amm1 = MarketAMM(market1.amm);
+        BinaryMarket amm1 = BinaryMarket(market1.amm);
         vm.prank(liquidityProvider);
         usdc.approve(address(amm1), type(uint256).max);
         vm.prank(liquidityProvider);
@@ -515,7 +530,7 @@ contract FullSystemTest is Test {
         console.log("Traded on USDC market");
 
         // Trade on DAI market
-        MarketAMM amm2 = MarketAMM(market2.amm);
+        BinaryMarket amm2 = BinaryMarket(market2.amm);
         vm.prank(liquidityProvider);
         dai.approve(address(amm2), type(uint256).max);
         vm.prank(liquidityProvider);

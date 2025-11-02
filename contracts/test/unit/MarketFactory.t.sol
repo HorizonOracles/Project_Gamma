@@ -105,11 +105,14 @@ contract MarketFactoryTest is Test {
 
     function test_CreateMarket() public {
         MarketFactory.MarketParams memory params = MarketFactory.MarketParams({
+            marketType: 0, // Binary market
             collateralToken: address(usdc),
             closeTime: block.timestamp + 30 days,
             category: "politics",
             metadataURI: "ipfs://QmExample123",
-            creatorStake: MIN_STAKE
+            creatorStake: MIN_STAKE,
+            outcomeCount: 2,
+            liquidityParameter: 0
         });
 
         uint256 creator1BalanceBefore = horizonToken.balanceOf(creator1);
@@ -141,12 +144,14 @@ contract MarketFactoryTest is Test {
         MarketFactory.Market memory market = factory.getMarket(marketId);
         assertEq(market.id, marketId);
         assertEq(market.creator, creator1);
+        assertEq(market.marketType, 0); // Binary
         assertNotEq(market.amm, address(0));
         assertEq(market.collateralToken, address(usdc));
         assertEq(market.closeTime, params.closeTime);
         assertEq(market.category, params.category);
         assertEq(market.metadataURI, params.metadataURI);
         assertEq(market.creatorStake, params.creatorStake);
+        assertEq(market.outcomeCount, 2);
         assertFalse(market.stakeRefunded);
         assertEq(uint8(market.status), uint8(MarketFactory.MarketStatus.Active));
 
@@ -165,11 +170,14 @@ contract MarketFactoryTest is Test {
 
     function test_CreateMarket_LargerStake() public {
         MarketFactory.MarketParams memory params = MarketFactory.MarketParams({
+            marketType: 0,
             collateralToken: address(usdc),
             closeTime: block.timestamp + 7 days,
             category: "crypto",
             metadataURI: "ipfs://QmTest",
-            creatorStake: 500 ether // Larger stake
+            creatorStake: 500 ether, // Larger stake
+            outcomeCount: 2,
+            liquidityParameter: 0
         });
 
         vm.prank(creator1);
@@ -183,11 +191,14 @@ contract MarketFactoryTest is Test {
     function test_CreateMarket_MultipleMarkets() public {
         // Create first market
         MarketFactory.MarketParams memory params1 = MarketFactory.MarketParams({
+            marketType: 0,
             collateralToken: address(usdc),
             closeTime: block.timestamp + 30 days,
             category: "politics",
             metadataURI: "ipfs://QmMarket1",
-            creatorStake: MIN_STAKE
+            creatorStake: MIN_STAKE,
+            outcomeCount: 2,
+            liquidityParameter: 0
         });
 
         vm.prank(creator1);
@@ -195,11 +206,14 @@ contract MarketFactoryTest is Test {
 
         // Create second market
         MarketFactory.MarketParams memory params2 = MarketFactory.MarketParams({
+            marketType: 0,
             collateralToken: address(usdc),
             closeTime: block.timestamp + 60 days,
             category: "sports",
             metadataURI: "ipfs://QmMarket2",
-            creatorStake: MIN_STAKE
+            creatorStake: MIN_STAKE,
+            outcomeCount: 2,
+            liquidityParameter: 0
         });
 
         vm.prank(creator2);
@@ -220,11 +234,14 @@ contract MarketFactoryTest is Test {
 
     function test_RevertWhen_CreateMarket_InvalidCollateral() public {
         MarketFactory.MarketParams memory params = MarketFactory.MarketParams({
+            marketType: 0,
             collateralToken: address(0),
             closeTime: block.timestamp + 30 days,
             category: "politics",
             metadataURI: "ipfs://QmExample",
-            creatorStake: MIN_STAKE
+            creatorStake: MIN_STAKE,
+            outcomeCount: 2,
+            liquidityParameter: 0
         });
 
         vm.prank(creator1);
@@ -234,11 +251,14 @@ contract MarketFactoryTest is Test {
 
     function test_RevertWhen_CreateMarket_InvalidCloseTime() public {
         MarketFactory.MarketParams memory params = MarketFactory.MarketParams({
+            marketType: 0, // Binary
             collateralToken: address(usdc),
             closeTime: block.timestamp - 1, // In the past
             category: "politics",
             metadataURI: "ipfs://QmExample",
-            creatorStake: MIN_STAKE
+            creatorStake: MIN_STAKE,
+            outcomeCount: 2,
+            liquidityParameter: 0
         });
 
         vm.prank(creator1);
@@ -248,11 +268,14 @@ contract MarketFactoryTest is Test {
 
     function test_RevertWhen_CreateMarket_InsufficientStake() public {
         MarketFactory.MarketParams memory params = MarketFactory.MarketParams({
+            marketType: 0,
             collateralToken: address(usdc),
             closeTime: block.timestamp + 30 days,
             category: "politics",
             metadataURI: "ipfs://QmExample",
-            creatorStake: MIN_STAKE - 1
+            creatorStake: MIN_STAKE - 1,
+            outcomeCount: 2,
+            liquidityParameter: 0
         });
 
         vm.prank(creator1);
@@ -262,11 +285,14 @@ contract MarketFactoryTest is Test {
 
     function test_RevertWhen_CreateMarket_EmptyCategory() public {
         MarketFactory.MarketParams memory params = MarketFactory.MarketParams({
+            marketType: 0,
             collateralToken: address(usdc),
             closeTime: block.timestamp + 30 days,
             category: "",
             metadataURI: "ipfs://QmExample",
-            creatorStake: MIN_STAKE
+            creatorStake: MIN_STAKE,
+            outcomeCount: 2,
+            liquidityParameter: 0
         });
 
         vm.prank(creator1);
@@ -279,11 +305,14 @@ contract MarketFactoryTest is Test {
     function test_RefundCreatorStake() public {
         // Create market
         MarketFactory.MarketParams memory params = MarketFactory.MarketParams({
+            marketType: 0,
             collateralToken: address(usdc),
             closeTime: block.timestamp + 30 days,
             category: "politics",
             metadataURI: "ipfs://QmExample",
-            creatorStake: MIN_STAKE
+            creatorStake: MIN_STAKE,
+            outcomeCount: 2,
+            liquidityParameter: 0
         });
 
         vm.prank(creator1);
@@ -319,11 +348,14 @@ contract MarketFactoryTest is Test {
     function test_RefundCreatorStake_ByCreator() public {
         // Create and resolve market
         MarketFactory.MarketParams memory params = MarketFactory.MarketParams({
+            marketType: 0,
             collateralToken: address(usdc),
             closeTime: block.timestamp + 1 days,
             category: "test",
             metadataURI: "ipfs://QmTest",
-            creatorStake: MIN_STAKE
+            creatorStake: MIN_STAKE,
+            outcomeCount: 2,
+            liquidityParameter: 0
         });
 
         vm.prank(creator1);
@@ -352,11 +384,14 @@ contract MarketFactoryTest is Test {
 
     function test_RevertWhen_RefundCreatorStake_NotResolved() public {
         MarketFactory.MarketParams memory params = MarketFactory.MarketParams({
+            marketType: 0,
             collateralToken: address(usdc),
             closeTime: block.timestamp + 30 days,
             category: "test",
             metadataURI: "ipfs://QmTest",
-            creatorStake: MIN_STAKE
+            creatorStake: MIN_STAKE,
+            outcomeCount: 2,
+            liquidityParameter: 0
         });
 
         vm.prank(creator1);
@@ -369,11 +404,14 @@ contract MarketFactoryTest is Test {
     function test_RevertWhen_RefundCreatorStake_AlreadyClaimed() public {
         // Create and resolve market
         MarketFactory.MarketParams memory params = MarketFactory.MarketParams({
+            marketType: 0,
             collateralToken: address(usdc),
             closeTime: block.timestamp + 1 days,
             category: "test",
             metadataURI: "ipfs://QmTest",
-            creatorStake: MIN_STAKE
+            creatorStake: MIN_STAKE,
+            outcomeCount: 2,
+            liquidityParameter: 0
         });
 
         vm.prank(creator1);
@@ -398,11 +436,14 @@ contract MarketFactoryTest is Test {
 
     function test_UpdateMarketStatus_Active() public {
         MarketFactory.MarketParams memory params = MarketFactory.MarketParams({
+            marketType: 0,
             collateralToken: address(usdc),
             closeTime: block.timestamp + 30 days,
             category: "test",
             metadataURI: "ipfs://QmTest",
-            creatorStake: MIN_STAKE
+            creatorStake: MIN_STAKE,
+            outcomeCount: 2,
+            liquidityParameter: 0
         });
 
         vm.prank(creator1);
@@ -414,11 +455,14 @@ contract MarketFactoryTest is Test {
 
     function test_UpdateMarketStatus_Closed() public {
         MarketFactory.MarketParams memory params = MarketFactory.MarketParams({
+            marketType: 0,
             collateralToken: address(usdc),
             closeTime: block.timestamp + 1 hours,
             category: "test",
             metadataURI: "ipfs://QmTest",
-            creatorStake: MIN_STAKE
+            creatorStake: MIN_STAKE,
+            outcomeCount: 2,
+            liquidityParameter: 0
         });
 
         vm.prank(creator1);
@@ -439,11 +483,14 @@ contract MarketFactoryTest is Test {
 
     function test_UpdateMarketStatus_Resolved() public {
         MarketFactory.MarketParams memory params = MarketFactory.MarketParams({
+            marketType: 0,
             collateralToken: address(usdc),
             closeTime: block.timestamp + 1 hours,
             category: "test",
             metadataURI: "ipfs://QmTest",
-            creatorStake: MIN_STAKE
+            creatorStake: MIN_STAKE,
+            outcomeCount: 2,
+            liquidityParameter: 0
         });
 
         vm.prank(creator1);
@@ -468,11 +515,14 @@ contract MarketFactoryTest is Test {
 
     function test_GetMarket() public {
         MarketFactory.MarketParams memory params = MarketFactory.MarketParams({
+            marketType: 0,
             collateralToken: address(usdc),
             closeTime: block.timestamp + 30 days,
             category: "sports",
             metadataURI: "ipfs://QmSports",
-            creatorStake: MIN_STAKE
+            creatorStake: MIN_STAKE,
+            outcomeCount: 2,
+            liquidityParameter: 0
         });
 
         vm.prank(creator1);
@@ -493,12 +543,15 @@ contract MarketFactoryTest is Test {
         // Create 5 markets
         for (uint256 i = 0; i < 5; i++) {
             MarketFactory.MarketParams memory params = MarketFactory.MarketParams({
-                collateralToken: address(usdc),
-                closeTime: block.timestamp + 30 days,
-                category: "test",
-                metadataURI: "ipfs://QmTest",
-                creatorStake: MIN_STAKE
-            });
+            marketType: 0,
+            collateralToken: address(usdc),
+            closeTime: block.timestamp + 30 days,
+            category: "test",
+            metadataURI: "ipfs://QmTest",
+            creatorStake: MIN_STAKE,
+            outcomeCount: 2,
+            liquidityParameter: 0
+        });
 
             vm.prank(creator1);
             factory.createMarket(params);
@@ -524,11 +577,14 @@ contract MarketFactoryTest is Test {
     function test_GetActiveMarkets() public {
         // Create market that will be active
         MarketFactory.MarketParams memory params1 = MarketFactory.MarketParams({
+            marketType: 0,
             collateralToken: address(usdc),
             closeTime: block.timestamp + 30 days,
             category: "test",
             metadataURI: "ipfs://QmActive",
-            creatorStake: MIN_STAKE
+            creatorStake: MIN_STAKE,
+            outcomeCount: 2,
+            liquidityParameter: 0
         });
 
         vm.prank(creator1);
@@ -536,11 +592,14 @@ contract MarketFactoryTest is Test {
 
         // Create market that will be closed
         MarketFactory.MarketParams memory params2 = MarketFactory.MarketParams({
+            marketType: 0,
             collateralToken: address(usdc),
             closeTime: block.timestamp + 1 seconds,
             category: "test",
             metadataURI: "ipfs://QmClosed",
-            creatorStake: MIN_STAKE
+            creatorStake: MIN_STAKE,
+            outcomeCount: 2,
+            liquidityParameter: 0
         });
 
         vm.prank(creator1);
@@ -558,33 +617,42 @@ contract MarketFactoryTest is Test {
     function test_GetMarketIdsByCategory() public {
         // Create markets in different categories
         MarketFactory.MarketParams memory params1 = MarketFactory.MarketParams({
+            marketType: 0,
             collateralToken: address(usdc),
             closeTime: block.timestamp + 30 days,
             category: "politics",
             metadataURI: "ipfs://QmPolitics1",
-            creatorStake: MIN_STAKE
+            creatorStake: MIN_STAKE,
+            outcomeCount: 2,
+            liquidityParameter: 0
         });
 
         vm.prank(creator1);
         factory.createMarket(params1);
 
         MarketFactory.MarketParams memory params2 = MarketFactory.MarketParams({
+            marketType: 0,
             collateralToken: address(usdc),
             closeTime: block.timestamp + 30 days,
             category: "politics",
             metadataURI: "ipfs://QmPolitics2",
-            creatorStake: MIN_STAKE
+            creatorStake: MIN_STAKE,
+            outcomeCount: 2,
+            liquidityParameter: 0
         });
 
         vm.prank(creator1);
         factory.createMarket(params2);
 
         MarketFactory.MarketParams memory params3 = MarketFactory.MarketParams({
+            marketType: 0,
             collateralToken: address(usdc),
             closeTime: block.timestamp + 30 days,
             category: "sports",
             metadataURI: "ipfs://QmSports",
-            creatorStake: MIN_STAKE
+            creatorStake: MIN_STAKE,
+            outcomeCount: 2,
+            liquidityParameter: 0
         });
 
         vm.prank(creator2);
@@ -604,11 +672,14 @@ contract MarketFactoryTest is Test {
     function test_GetMarketIdsByCreator() public {
         // Create markets
         MarketFactory.MarketParams memory params = MarketFactory.MarketParams({
+            marketType: 0,
             collateralToken: address(usdc),
             closeTime: block.timestamp + 30 days,
             category: "test",
             metadataURI: "ipfs://QmTest1",
-            creatorStake: MIN_STAKE
+            creatorStake: MIN_STAKE,
+            outcomeCount: 2,
+            liquidityParameter: 0
         });
 
         vm.prank(creator1);
@@ -632,11 +703,14 @@ contract MarketFactoryTest is Test {
 
     function test_MarketExists() public {
         MarketFactory.MarketParams memory params = MarketFactory.MarketParams({
+            marketType: 0,
             collateralToken: address(usdc),
             closeTime: block.timestamp + 30 days,
             category: "test",
             metadataURI: "ipfs://QmTest",
-            creatorStake: MIN_STAKE
+            creatorStake: MIN_STAKE,
+            outcomeCount: 2,
+            liquidityParameter: 0
         });
 
         vm.prank(creator1);

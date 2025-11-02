@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 /**
  * @title IMarket
  * @notice Common interface for all prediction market types
- * @dev All market implementations (MarketAMM, MultiChoiceMarket, etc.) should implement this interface
+ * @dev All market implementations (BinaryMarket, MultiChoiceMarket, etc.) should implement this interface
  *      This provides a standardized way to interact with any market type
  */
 interface IMarket {

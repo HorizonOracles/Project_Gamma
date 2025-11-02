@@ -5,7 +5,10 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "./MarketAMM.sol";
+import "./markets/BinaryMarket.sol";
+import "./markets/MultiChoiceMarket.sol";
+import "./markets/LimitOrderMarket.sol";
+import "./markets/PooledLiquidityMarket.sol";
 import "./OutcomeToken.sol";
 import "./FeeSplitter.sol";
 import "./HorizonPerks.sol";
@@ -37,6 +40,13 @@ contract MarketFactory is Ownable, ReentrancyGuard {
         Invalid     // Market was invalidated
     }
 
+    enum MarketType {
+        Binary,            // 2 outcomes, MarketAMM (constant product)
+        MultiChoice,       // 3-8 outcomes, LMSR pricing
+        LimitOrder,        // 2+ outcomes, order book
+        PooledLiquidity    // 2 outcomes, Uniswap V3-style
+    }
+
     // ============ Errors ============
 
     error InvalidCloseTime();
@@ -48,6 +58,9 @@ contract MarketFactory is Ownable, ReentrancyGuard {
     error StakeAlreadyClaimed();
     error InvalidAddress();
     error InvalidCategory();
+    error InvalidMarketType();
+    error InvalidOutcomeCount();
+    error InvalidLiquidityParameter();
 
     // ============ Events ============
 
@@ -70,42 +83,52 @@ contract MarketFactory is Ownable, ReentrancyGuard {
 
     /**
      * @notice Parameters for creating a new market
+     * @param marketType Type of market (Binary, MultiChoice, LimitOrder, PooledLiquidity)
      * @param collateralToken ERC20 token used for trading (e.g., USDC)
      * @param closeTime Timestamp when market closes for trading
      * @param category Market category (e.g., "politics", "sports", "crypto")
      * @param metadataURI IPFS CID containing market question and details
      * @param creatorStake Amount of HORIZON tokens to stake (must be >= minCreatorStake)
+     * @param outcomeCount Number of outcomes (2 for Binary/PooledLiquidity, 3-8 for MultiChoice, 2+ for LimitOrder)
+     * @param liquidityParameter LMSR liquidity parameter for MultiChoice markets (ignored for other types)
      */
     struct MarketParams {
+        uint8 marketType;
         address collateralToken;
         uint256 closeTime;
         string category;
         string metadataURI;
         uint256 creatorStake;
+        uint8 outcomeCount;
+        uint256 liquidityParameter;
     }
 
     /**
      * @notice Market information stored on-chain
      * @param id Unique market identifier
      * @param creator Address that created the market
+     * @param marketType Type of market contract deployed
      * @param amm MarketAMM contract address
      * @param collateralToken ERC20 token for trading
      * @param closeTime When market closes
      * @param category Market category
      * @param metadataURI IPFS CID
      * @param creatorStake HORIZON tokens staked
+     * @param outcomeCount Number of outcomes in this market
      * @param stakeRefunded Whether creator stake was refunded
      * @param status Current market status
      */
     struct Market {
         uint256 id;
         address creator;
+        uint8 marketType;
         address amm;
         address collateralToken;
         uint256 closeTime;
         string category;
         string metadataURI;
         uint256 creatorStake;
+        uint8 outcomeCount;
         bool stakeRefunded;
         MarketStatus status;
     }
@@ -161,6 +184,80 @@ contract MarketFactory is Ownable, ReentrancyGuard {
     // ============ Market Creation ============
 
     /**
+     * @notice Internal function to deploy the appropriate market contract based on type
+     * @param marketId Market identifier
+     * @param params Market parameters
+     * @return ammAddress Address of the deployed market contract
+     */
+    function _deployMarket(uint256 marketId, MarketParams calldata params) internal returns (address ammAddress) {
+        if (params.marketType == uint8(MarketType.Binary)) {
+            // Binary market using BinaryMarket (2 outcomes, static 1:1 pricing with 2% fee)
+            if (params.outcomeCount != 2) revert InvalidOutcomeCount();
+            
+            BinaryMarket market = new BinaryMarket(
+                marketId,
+                params.collateralToken,
+                address(outcomeToken),
+                address(feeSplitter),
+                address(horizonPerks),
+                params.closeTime
+            );
+            return address(market);
+            
+        } else if (params.marketType == uint8(MarketType.MultiChoice)) {
+            // Multi-choice market using LMSR (3-8 outcomes)
+            if (params.outcomeCount < 3 || params.outcomeCount > 8) revert InvalidOutcomeCount();
+            if (params.liquidityParameter == 0) revert InvalidLiquidityParameter();
+            
+            MultiChoiceMarket market = new MultiChoiceMarket(
+                marketId,
+                params.collateralToken,
+                address(outcomeToken),
+                address(feeSplitter),
+                address(horizonPerks),
+                params.closeTime,
+                params.outcomeCount,
+                params.liquidityParameter
+            );
+            return address(market);
+            
+        } else if (params.marketType == uint8(MarketType.LimitOrder)) {
+            // Limit order market (2+ outcomes, order book)
+            if (params.outcomeCount < 2) revert InvalidOutcomeCount();
+            
+            LimitOrderMarket market = new LimitOrderMarket(
+                marketId,
+                params.collateralToken,
+                address(outcomeToken),
+                address(feeSplitter),
+                address(horizonPerks),
+                params.closeTime,
+                params.outcomeCount
+            );
+            return address(market);
+            
+        } else if (params.marketType == uint8(MarketType.PooledLiquidity)) {
+            // Pooled liquidity market (binary only, Uniswap V3-style)
+            if (params.outcomeCount != 2) revert InvalidOutcomeCount();
+            
+            PooledLiquidityMarket market = new PooledLiquidityMarket(
+                marketId,
+                params.collateralToken,
+                address(outcomeToken),
+                address(feeSplitter),
+                address(horizonPerks),
+                params.closeTime,
+                "Horizon LP Token",
+                "HZN-LP"
+            );
+            return address(market);
+            
+        } else {
+            revert InvalidMarketType();
+        }
+    }
+
+    /**
      * @notice Creates a new prediction market
      * @param params Market parameters
      * @return marketId The ID of the newly created market
@@ -171,6 +268,7 @@ contract MarketFactory is Ownable, ReentrancyGuard {
         if (params.closeTime <= block.timestamp) revert InvalidCloseTime();
         if (params.creatorStake < minCreatorStake) revert InvalidCreatorStake();
         if (bytes(params.category).length == 0) revert InvalidCategory();
+        if (params.marketType > uint8(MarketType.PooledLiquidity)) revert InvalidMarketType();
 
         // Generate market ID
         marketId = nextMarketId++;
@@ -184,29 +282,24 @@ contract MarketFactory is Ownable, ReentrancyGuard {
         // Register market in FeeSplitter
         feeSplitter.registerMarket(marketId, msg.sender);
 
-        // Deploy new MarketAMM
-        MarketAMM amm = new MarketAMM(
-            marketId,
-            params.collateralToken,
-            address(outcomeToken),
-            address(feeSplitter),
-            address(horizonPerks),
-            params.closeTime
-        );
+        // Deploy appropriate market contract based on type
+        address ammAddress = _deployMarket(marketId, params);
 
         // Authorize AMM to mint/burn outcome tokens
-        outcomeToken.setAMMAuthorization(address(amm), true);
+        outcomeToken.setAMMAuthorization(ammAddress, true);
 
         // Store market info
         markets[marketId] = Market({
             id: marketId,
             creator: msg.sender,
-            amm: address(amm),
+            marketType: params.marketType,
+            amm: ammAddress,
             collateralToken: params.collateralToken,
             closeTime: params.closeTime,
             category: params.category,
             metadataURI: params.metadataURI,
             creatorStake: params.creatorStake,
+            outcomeCount: params.outcomeCount,
             stakeRefunded: false,
             status: MarketStatus.Active
         });
@@ -219,7 +312,7 @@ contract MarketFactory is Ownable, ReentrancyGuard {
         emit MarketCreated(
             marketId,
             msg.sender,
-            address(amm),
+            ammAddress,
             params.collateralToken,
             params.closeTime,
             params.category,

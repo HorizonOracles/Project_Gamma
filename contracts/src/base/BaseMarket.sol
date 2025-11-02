@@ -195,7 +195,7 @@ abstract contract BaseMarket is IMarket, ERC20, ReentrancyGuard, Pausable, IERC1
     /**
      * @inheritdoc IMarket
      */
-    function fundRedemptions() external override nonReentrant {
+    function fundRedemptions() external virtual override nonReentrant {
         if (!outcomeToken.isResolved(marketId)) revert InvalidState();
 
         uint256 collateralBalance = collateralToken.balanceOf(address(this));

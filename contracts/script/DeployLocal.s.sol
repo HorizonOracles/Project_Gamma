@@ -285,13 +285,16 @@ contract DeployLocal is Script {
         // Approve HORIZON tokens
         horizonToken.approve(address(marketFactory), MIN_CREATOR_STAKE);
         
-        // Create market
+        // Create market (Binary type with 2 outcomes)
         MarketFactory.MarketParams memory params = MarketFactory.MarketParams({
+            marketType: 0, // Binary market
             collateralToken: collateralToken,
             closeTime: closeTime,
             category: category,
             metadataURI: metadataURI,
-            creatorStake: MIN_CREATOR_STAKE
+            creatorStake: MIN_CREATOR_STAKE,
+            outcomeCount: 2, // Binary market has 2 outcomes
+            liquidityParameter: 0 // Not used for Binary markets
         });
         
         marketId = marketFactory.createMarket(params);

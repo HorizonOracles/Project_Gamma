@@ -180,7 +180,7 @@ contract DeployMainnet is Script {
         marketFactory.setMinCreatorStake(config.minCreatorStake);
         
         console.log("\n  Supported Market Types:");
-        console.log("  - Standard AMM (via MarketAMM)");
+        console.log("  - Binary Market (static 1:1 pricing)");
         console.log("  - Limit Order Markets (LimitOrderMarket)");
         console.log("  - Multi-Choice Markets (MultiChoiceMarket)");
         console.log("  - Pooled Liquidity Markets (PooledLiquidityMarket)");
@@ -293,7 +293,7 @@ contract DeployMainnet is Script {
         console.log("  Dispute Window:         ", config.disputeWindow, "seconds");
 
         console.log("\nSUPPORTED MARKET TYPES:");
-        console.log("  1. Standard AMM         (MarketAMM - constant product)");
+        console.log("  1. Binary Market        (BinaryMarket - static 1:1 pricing)");
         console.log("  2. Limit Order Market   (LimitOrderMarket - CLOB)");
         console.log("  3. Multi-Choice Market  (MultiChoiceMarket - LMSR)");
         console.log("  4. Pooled Liquidity     (PooledLiquidityMarket - Uniswap V3 style)");

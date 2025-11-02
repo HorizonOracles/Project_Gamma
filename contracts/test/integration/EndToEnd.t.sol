@@ -6,7 +6,7 @@ import "../../src/OutcomeToken.sol";
 
 import "../../src/FeeSplitter.sol";
 import "../../src/HorizonPerks.sol";
-import "../../src/MarketAMM.sol";
+import "../../src/markets/BinaryMarket.sol";
 import "../../src/ResolutionModule.sol";
 import "../mocks/MockERC20.sol";
 
@@ -20,7 +20,7 @@ contract EndToEndTest is Test {
     MockERC20 public horizonToken;
     FeeSplitter public feeSplitter;
     HorizonPerks public horizonPerks;
-    MarketAMM public amm;
+    BinaryMarket public market;
     ResolutionModule public resolution;
     MockERC20 public collateral;
 
@@ -49,14 +49,14 @@ contract EndToEndTest is Test {
         outcomeToken.registerMarket(MARKET_ID, collateral);
         feeSplitter.registerMarket(MARKET_ID, creator);
 
-        // Deploy AMM
+        // Deploy market
         closeTime = block.timestamp + 30 days;
-        amm = new MarketAMM(
+        market = new BinaryMarket(
             MARKET_ID, address(collateral), address(outcomeToken), address(feeSplitter), address(horizonPerks), closeTime
         );
 
-        // Authorize contracts
-        outcomeToken.setAMMAuthorization(address(amm), true);
+        // Authorize market
+        outcomeToken.setAMMAuthorization(address(market), true);
         outcomeToken.setResolutionAuthorization(address(resolution), true);
 
         // Fund actors with collateral
@@ -69,13 +69,13 @@ contract EndToEndTest is Test {
 
         // Approve contracts
         vm.prank(liquidityProvider);
-        collateral.approve(address(amm), type(uint256).max);
+        collateral.approve(address(market), type(uint256).max);
 
         vm.prank(trader1);
-        collateral.approve(address(amm), type(uint256).max);
+        collateral.approve(address(market), type(uint256).max);
 
         vm.prank(trader2);
-        collateral.approve(address(amm), type(uint256).max);
+        collateral.approve(address(market), type(uint256).max);
 
         vm.prank(creator);
         horizonToken.approve(address(resolution), type(uint256).max);
@@ -89,7 +89,7 @@ contract EndToEndTest is Test {
         console.log("=== PHASE 1: ADD LIQUIDITY ===");
 
         vm.prank(liquidityProvider);
-        uint256 lpTokens = amm.addLiquidity(10_000 ether);
+        uint256 lpTokens = market.addLiquidity(10_000 ether);
 
         console.log("LP tokens received:", lpTokens / 1e18);
         assertGt(lpTokens, 0);
@@ -100,12 +100,12 @@ contract EndToEndTest is Test {
         // Trader1 buys YES (500 collateral)
         uint256 trader1CollateralBefore = collateral.balanceOf(trader1);
         vm.prank(trader1);
-        uint256 trader1YesTokens = amm.buyYes(500 ether, 0);
+        uint256 trader1YesTokens = market.buyYes(500 ether, 0);
         console.log("Trader1 bought YES tokens:", trader1YesTokens / 1e18);
 
         // Trader2 buys NO (300 collateral)
         vm.prank(trader2);
-        uint256 trader2NoTokens = amm.buyNo(300 ether, 0);
+        uint256 trader2NoTokens = market.buyNo(300 ether, 0);
         console.log("Trader2 bought NO tokens:", trader2NoTokens / 1e18);
 
         // Check outcome token balances
@@ -136,7 +136,7 @@ contract EndToEndTest is Test {
         assertEq(outcomeToken.winningOutcome(MARKET_ID), 0); // YES
 
         // Fund OutcomeToken with collateral for redemptions
-        amm.fundRedemptions();
+        market.fundRedemptions();
         console.log("AMM collateral transferred to OutcomeToken for redemptions");
 
         // ===== PHASE 5: WINNERS CLAIM =====
@@ -185,13 +185,13 @@ contract EndToEndTest is Test {
     function test_FullMarketLifecycle_WithDispute() public {
         // Setup: LP and trading
         vm.prank(liquidityProvider);
-        amm.addLiquidity(10_000 ether);
+        market.addLiquidity(10_000 ether);
 
         vm.prank(trader1);
-        uint256 yesTokens = amm.buyYes(500 ether, 0);
+        uint256 yesTokens = market.buyYes(500 ether, 0);
 
         vm.prank(trader2);
-        uint256 noTokens = amm.buyNo(300 ether, 0);
+        uint256 noTokens = market.buyNo(300 ether, 0);
 
         // Close market
         vm.warp(closeTime + 1);
@@ -218,7 +218,7 @@ contract EndToEndTest is Test {
         assertEq(outcomeToken.winningOutcome(MARKET_ID), 1); // NO
 
         // Fund redemptions
-        amm.fundRedemptions();
+        market.fundRedemptions();
 
         // Trader2 (NO holder) can now claim
         uint256 trader2BalanceBefore = collateral.balanceOf(trader2);
@@ -240,7 +240,7 @@ contract EndToEndTest is Test {
     function test_MultipleWinnersClaim() public {
         // Setup liquidity
         vm.prank(liquidityProvider);
-        amm.addLiquidity(20_000 ether);
+        market.addLiquidity(20_000 ether);
 
         // Multiple traders buy YES
         address trader3 = address(0x7);
@@ -250,19 +250,19 @@ contract EndToEndTest is Test {
         collateral.mint(trader4, 10_000 ether);
 
         vm.prank(trader3);
-        collateral.approve(address(amm), type(uint256).max);
+        collateral.approve(address(market), type(uint256).max);
         vm.prank(trader4);
-        collateral.approve(address(amm), type(uint256).max);
+        collateral.approve(address(market), type(uint256).max);
 
         // All buy YES
         vm.prank(trader1);
-        uint256 yes1 = amm.buyYes(500 ether, 0);
+        uint256 yes1 = market.buyYes(500 ether, 0);
 
         vm.prank(trader3);
-        uint256 yes3 = amm.buyYes(1000 ether, 0);
+        uint256 yes3 = market.buyYes(1000 ether, 0);
 
         vm.prank(trader4);
-        uint256 yes4 = amm.buyYes(200 ether, 0);
+        uint256 yes4 = market.buyYes(200 ether, 0);
 
         // Resolve to YES
         vm.warp(closeTime + 1);
@@ -272,7 +272,7 @@ contract EndToEndTest is Test {
         resolution.finalize(MARKET_ID);
 
         // Fund redemptions
-        amm.fundRedemptions();
+        market.fundRedemptions();
 
         // All winners claim their proportional share
         vm.prank(trader1);
@@ -296,10 +296,10 @@ contract EndToEndTest is Test {
     function test_PartialRedemption() public {
         // Setup and trading
         vm.prank(liquidityProvider);
-        amm.addLiquidity(10_000 ether);
+        market.addLiquidity(10_000 ether);
 
         vm.prank(trader1);
-        uint256 yesTokens = amm.buyYes(1000 ether, 0);
+        uint256 yesTokens = market.buyYes(1000 ether, 0);
 
         // Resolve to YES
         vm.warp(closeTime + 1);
@@ -309,7 +309,7 @@ contract EndToEndTest is Test {
         resolution.finalize(MARKET_ID);
 
         // Fund redemptions
-        amm.fundRedemptions();
+        market.fundRedemptions();
 
         // Trader1 redeems in 3 parts
         vm.prank(trader1);
