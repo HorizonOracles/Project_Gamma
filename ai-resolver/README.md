@@ -97,6 +97,35 @@ Submit to AIOracleAdapter contract
 
 </td>
 </tr>
+<tr>
+<td width="33%">
+
+**AI Tool Orchestration**
+- Multi-tool sequential execution
+- Custom tool registry
+- Built-in tools (calculator, datetime, blockchain data)
+- OpenAI Responses API integration
+
+</td>
+<td width="33%">
+
+**Error Handling**
+- Graceful tool failure recovery
+- Invalid argument detection
+- Dependency chain validation
+- Up to 10 iteration attempts
+
+</td>
+<td width="33%">
+
+**Extensible Architecture**
+- Plugin-based tool system
+- Easy custom tool integration
+- Configurable LLM provider
+- Docker-ready deployment
+
+</td>
+</tr>
 </table>
 
 ---
@@ -133,6 +162,76 @@ AI Resolver Service
     ├── Transaction submission
     └── Event monitoring
 ```
+
+### Tool Orchestration System
+
+The AI Resolver includes an advanced tool orchestration system that allows the LLM to use custom tools for blockchain data queries, calculations, and time operations. This enables the AI to answer complex questions requiring multi-step analysis.
+
+**Available Built-in Tools:**
+
+<table>
+<tr>
+<th>Tool</th>
+<th>Description</th>
+<th>Example Use Case</th>
+</tr>
+<tr>
+<td><strong>get_market_data</strong></td>
+<td>Fetch market information from blockchain</td>
+<td>Get market close time, token addresses, or status</td>
+</tr>
+<tr>
+<td><strong>calculate</strong></td>
+<td>Mathematical operations (add, subtract, multiply, divide, etc.)</td>
+<td>Compare timestamps, calculate time differences</td>
+</tr>
+<tr>
+<td><strong>datetime</strong></td>
+<td>Convert Unix timestamps to readable dates</td>
+<td>Verify if event occurred before/after specific date</td>
+</tr>
+<tr>
+<td><strong>bscscan</strong></td>
+<td>Query BSCScan API for blockchain data</td>
+<td>Check token balances, transaction history</td>
+</tr>
+<tr>
+<td><strong>pancakeswap</strong></td>
+<td>Fetch PancakeSwap DEX data</td>
+<td>Get token prices, liquidity pool information</td>
+</tr>
+</table>
+
+**How It Works:**
+
+1. **Question Analysis**: LLM analyzes the question and determines which tools are needed
+2. **Tool Execution**: Tools are called sequentially with appropriate parameters
+3. **Result Processing**: Tool outputs are appended to the prompt for the next iteration
+4. **Multi-Step Chaining**: LLM can use results from one tool as input to another
+5. **Final Answer**: After gathering all data, LLM provides the final resolution
+
+**Example: Complex Multi-Tool Query**
+
+```
+Question: "Use get_market_data to get market 1's close_time, 
+then use calculate to add 86400 seconds (1 day), 
+then use datetime to convert the new timestamp. 
+Is the result exactly 1 day later?"
+
+Execution Flow:
+1. get_market_data(market_id: 1) → close_time: 1762172000
+2. calculate(add([1762172000, 86400])) → 1762258400  
+3. datetime(timestamp: 1762172000) → "2025-11-03 12:13:20"
+4. datetime(timestamp: 1762258400) → "2025-11-04 12:13:20"
+5. Final Answer: YES (exactly 1 day later)
+```
+
+**Error Handling:**
+
+- Invalid tool arguments are caught and reported to the LLM
+- Failed tool executions return error messages for the LLM to interpret
+- Maximum 10 iterations prevents infinite loops
+- Graceful degradation when tools are unavailable
 
 ### Project Structure
 
@@ -352,9 +451,20 @@ Content-Type: application/json
 
 ```json
 {
-  "marketId": 123
+  "marketId": 123,
+  "closeTime": 1762172000,
+  "question": "Will Bitcoin reach $100k by end of 2024?",
+  "outcomeTokens": ["YES", "NO"],
+  "metadata": "{}"
 }
 ```
+
+**Fields:**
+- `marketId` (required) - Market identifier
+- `closeTime` (required) - Unix timestamp when market closes
+- `question` (required) - Market question to resolve
+- `outcomeTokens` (required) - Array of possible outcomes
+- `metadata` (optional) - Additional metadata as JSON string
 
 </td>
 </tr>
@@ -378,7 +488,7 @@ Content-Type: application/json
 
 **Status Codes:**
 - `200 OK` - Proposal submitted successfully
-- `400 Bad Request` - Invalid market ID
+- `400 Bad Request` - Invalid request body or missing required fields
 - `409 Conflict` - Market already resolved
 - `500 Internal Server Error` - Processing failed
 

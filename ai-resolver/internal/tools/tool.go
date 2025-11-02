@@ -23,8 +23,8 @@ type Tool interface {
 	// Execute runs the tool with the provided input
 	Execute(ctx context.Context, input ToolInput) (ToolOutput, error)
 
-	// Validate checks if the input is valid for this tool
-	Validate(input ToolInput) error
+	// ToOpenAIFormat converts the tool to OpenAI API format
+	ToOpenAIFormat() map[string]any
 }
 
 // ToolExecutor is the function signature for tool execution logic
@@ -176,16 +176,25 @@ func (t *BaseTool) Validate(input ToolInput) error {
 func (t *BaseTool) ToOpenAIFormat() map[string]any {
 	switch t.toolType {
 	case ToolTypeFunction:
+		// Responses API format: flat structure with type, name, description, parameters
 		result := map[string]any{
-			"type": "function",
-			"function": map[string]any{
-				"name":        t.name,
-				"description": t.description,
-			},
+			"type":        "function",
+			"name":        t.name,
+			"description": t.description,
 		}
+
+		// Only enable strict mode if all properties are required
+		// (OpenAI strict mode requires all properties to be in the required array)
 		if t.schema != nil {
-			result["function"].(map[string]any)["parameters"] = t.schema.ToOpenAIFormat()
+			result["parameters"] = t.schema.ToOpenAIFormat()
+
+			// Check if all properties are required
+			allRequired := len(t.schema.Properties) == len(t.schema.Required)
+			if allRequired {
+				result["strict"] = true
+			}
 		}
+
 		return result
 
 	case ToolTypeCustom:

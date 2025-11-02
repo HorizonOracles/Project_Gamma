@@ -291,17 +291,19 @@ func (p *OpenAIPipeline) callOpenAIWithWebSearch(ctx context.Context, prompt str
 	// Use the responses API endpoint
 	responsesURL := "https://api.openai.com/v1/responses"
 
-	// Build tools array - use registry if available, otherwise default to web search
+	// Build tools array with web_search and custom tools
 	var tools []map[string]any
+
+	// Always include web search (use "web_search" not "web_search_preview" for compatibility with function tools)
+	tools = []map[string]any{
+		{"type": "web_search"},
+	}
+
+	// Add custom tools from registry if available
 	if p.toolRegistry != nil {
-		// Use tools from registry
 		for _, tool := range p.toolRegistry.List() {
-			tools = append(tools, tool.ToOpenAIFormat())
-		}
-	} else {
-		// Default: just web search
-		tools = []map[string]any{
-			{"type": "web_search_preview"},
+			toolFormat := tool.ToOpenAIFormat()
+			tools = append(tools, toolFormat)
 		}
 	}
 
@@ -342,18 +344,49 @@ func (p *OpenAIPipeline) callOpenAIWithWebSearch(ctx context.Context, prompt str
 			return "", fmt.Errorf("API returned status %d: %s", resp.StatusCode, string(body))
 		}
 
+		// DEBUG: Log raw JSON response
+		fmt.Printf("\n=== RAW API RESPONSE (Iteration %d) ===\n", iteration+1)
+		fmt.Printf("%s\n", string(body))
+		fmt.Printf("=========================================\n\n")
+
 		var apiResp openAIResponsesAPIResponse
 		if err := json.Unmarshal(body, &apiResp); err != nil {
 			return "", fmt.Errorf("failed to parse response: %w", err)
 		}
 
+		// DEBUG: Log parsed response structure
+		fmt.Printf("\n=== PARSED API RESPONSE (Iteration %d) ===\n", iteration+1)
+		fmt.Printf("Response ID: %s\n", apiResp.ID)
+		fmt.Printf("Status: %s\n", apiResp.Status)
+		fmt.Printf("Output count: %d\n", len(apiResp.Output))
+		for i, output := range apiResp.Output {
+			fmt.Printf("Output[%d]: Type=%s, Status=%s, ContentCount=%d, ToolCallCount=%d\n",
+				i, output.Type, output.Status, len(output.Content), len(output.ToolCalls))
+		}
+		fmt.Printf("===========================================\n\n")
+
 		if len(apiResp.Output) == 0 {
 			return "", fmt.Errorf("no output in response")
 		}
 
-		// Check for tool calls
+		// Check for tool calls (handle both nested and flat structures)
 		var toolCalls []ToolCall
 		for _, output := range apiResp.Output {
+			// Handle flat function_call structure
+			if output.Type == "function_call" && output.Name != "" {
+				toolCalls = append(toolCalls, ToolCall{
+					ID:   output.CallID,
+					Type: "function",
+					Function: struct {
+						Name      string `json:"name"`
+						Arguments string `json:"arguments"`
+					}{
+						Name:      output.Name,
+						Arguments: output.Arguments,
+					},
+				})
+			}
+			// Handle nested tool_calls array
 			if len(output.ToolCalls) > 0 {
 				toolCalls = append(toolCalls, output.ToolCalls...)
 			}
@@ -365,12 +398,19 @@ func (p *OpenAIPipeline) callOpenAIWithWebSearch(ctx context.Context, prompt str
 				return "", fmt.Errorf("received tool calls but no tool registry is configured")
 			}
 
+			fmt.Printf("\n=== TOOL CALLS (Iteration %d) ===\n", iteration+1)
+			fmt.Printf("Found %d tool call(s)\n", len(toolCalls))
+
 			// Execute each tool call
 			toolResults := make([]map[string]any, 0, len(toolCalls))
-			for _, toolCall := range toolCalls {
+			for i, toolCall := range toolCalls {
 				if toolCall.Type != "function" {
 					continue // Skip non-function tool calls
 				}
+
+				fmt.Printf("\nTool Call #%d:\n", i+1)
+				fmt.Printf("  Name: %s\n", toolCall.Function.Name)
+				fmt.Printf("  Arguments: %s\n", toolCall.Function.Arguments)
 
 				// Get the tool from registry
 				tool, ok := p.toolRegistry.Get(toolCall.Function.Name)
@@ -387,10 +427,14 @@ func (p *OpenAIPipeline) callOpenAIWithWebSearch(ctx context.Context, prompt str
 				// Execute the tool
 				result, err := tool.Execute(ctx, args)
 				if err != nil {
+					fmt.Printf("  Result: ERROR - %v\n", err)
 					// Return error as tool result so LLM can see it
 					result = map[string]any{
 						"error": err.Error(),
 					}
+				} else {
+					resultJSON, _ := json.MarshalIndent(result, "  ", "  ")
+					fmt.Printf("  Result: %s\n", string(resultJSON))
 				}
 
 				// Format tool result for next API call
@@ -402,8 +446,19 @@ func (p *OpenAIPipeline) callOpenAIWithWebSearch(ctx context.Context, prompt str
 				})
 			}
 
+			fmt.Printf("=== END TOOL CALLS ===\n\n")
+
 			// Update request body with tool results for next iteration
-			reqBody["tool_results"] = toolResults
+			// Responses API doesn't support output parameter - append results to input
+			var toolResultsSummary string
+			for i, tr := range toolResults {
+				toolResultsSummary += fmt.Sprintf("\n\nTool Result %d (call_id: %v):\n%v", i+1, tr["tool_call_id"], tr["content"])
+			}
+
+			// Append tool results to the input prompt
+			currentInput := reqBody["input"].(string)
+			reqBody["input"] = currentInput + "\n\n===TOOL RESULTS===" + toolResultsSummary + "\n\nBased on the above tool results, please continue your analysis."
+
 			continue
 		}
 
@@ -502,11 +557,16 @@ type openAIResponsesAPIResponse struct {
 
 type openAIResponsesAPIOutput struct {
 	ID        string                      `json:"id"`
-	Type      string                      `json:"type"`
+	Type      string                      `json:"type"` // Can be "message", "function_call", etc.
 	Status    string                      `json:"status"`
 	Content   []openAIResponsesAPIContent `json:"content,omitempty"`
 	Role      string                      `json:"role,omitempty"`
-	ToolCalls []ToolCall                  `json:"tool_calls,omitempty"` // For function call outputs
+	ToolCalls []ToolCall                  `json:"tool_calls,omitempty"` // For nested tool_calls structure
+
+	// For function_call type outputs (flat structure)
+	Name      string `json:"name,omitempty"`
+	Arguments string `json:"arguments,omitempty"`
+	CallID    string `json:"call_id,omitempty"`
 }
 
 type openAIResponsesAPIContent struct {

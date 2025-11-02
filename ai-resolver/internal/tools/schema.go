@@ -191,8 +191,9 @@ func (s *ToolSchema) ToOpenAIFormat() map[string]any {
 	}
 
 	result := map[string]any{
-		"type":       s.Type,
-		"properties": make(map[string]any),
+		"type":                 s.Type,
+		"properties":           make(map[string]any),
+		"additionalProperties": false, // Required for Responses API strict mode
 	}
 
 	for name, prop := range s.Properties {

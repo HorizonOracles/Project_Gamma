@@ -82,3 +82,7 @@ contracts/src/compileoutput.txt
 # package-lock.json
 # yarn.lock
 # pnpm-lock.yaml
+
+# Test market JSON files (temporary test data)
+test-market*.json
+test-edge-case-*.json

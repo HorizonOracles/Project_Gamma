@@ -8,6 +8,7 @@ import "../src/HorizonPerks.sol";
 import "../src/FeeSplitter.sol";
 import "../src/ResolutionModule.sol";
 import "../src/MarketFactory.sol";
+import "../src/AIOracleAdapter.sol";
 import "../test/mocks/MockERC20.sol";
 // Import market types to ensure they compile
 import "../src/markets/LimitOrderMarket.sol";
@@ -38,6 +39,7 @@ contract DeployLocal is Script {
     FeeSplitter public feeSplitter;
     ResolutionModule public resolutionModule;
     MarketFactory public marketFactory;
+    AIOracleAdapter public aiOracleAdapter;
     
     // Mock tokens for testing
     MockERC20 public usdc;
@@ -163,6 +165,16 @@ contract DeployLocal is Script {
         // Configure factory parameters
         marketFactory.setMinCreatorStake(MIN_CREATOR_STAKE);
         console.log("  Factory parameters configured");
+
+        // 7. Deploy AIOracleAdapter
+        console.log("Deploying AIOracleAdapter...");
+        aiOracleAdapter = new AIOracleAdapter(
+            address(resolutionModule),
+            address(horizonToken),
+            deployer  // Initial signer (deployer for testing)
+        );
+        console.log("  AIOracleAdapter deployed at:", address(aiOracleAdapter));
+        console.log("  Deployer set as initial AI signer");
     }
 
     /**
@@ -228,6 +240,7 @@ contract DeployLocal is Script {
         console.log("  FeeSplitter:        ", address(feeSplitter));
         console.log("  ResolutionModule:   ", address(resolutionModule));
         console.log("  MarketFactory:      ", address(marketFactory));
+        console.log("  AIOracleAdapter:    ", address(aiOracleAdapter));
         console.log("");
         console.log("Mock Tokens:");
         console.log("  USDC:               ", address(usdc));

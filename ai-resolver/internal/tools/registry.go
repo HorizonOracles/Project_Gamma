@@ -149,28 +149,7 @@ func (r *DefaultRegistry) ToOpenAIFormat() []map[string]any {
 
 	result := make([]map[string]any, 0, len(r.tools))
 	for _, tool := range r.tools {
-		// Use tool's ToOpenAIFormat method if available
-		if bt, ok := tool.(*BaseTool); ok {
-			result = append(result, bt.ToOpenAIFormat())
-		} else {
-			// Fallback for custom Tool implementations
-			format := map[string]any{
-				"type": string(tool.Type()),
-				"name": tool.Name(),
-			}
-			if tool.Type() == ToolTypeFunction {
-				format["function"] = map[string]any{
-					"name":        tool.Name(),
-					"description": tool.Description(),
-				}
-				if schema := tool.Schema(); schema != nil {
-					format["function"].(map[string]any)["parameters"] = schema.ToOpenAIFormat()
-				}
-			} else if tool.Type() == ToolTypeCustom {
-				format["description"] = tool.Description()
-			}
-			result = append(result, format)
-		}
+		result = append(result, tool.ToOpenAIFormat())
 	}
 	return result
 }

@@ -56,11 +56,9 @@ func main() {
 	// Initialize tool registry and register built-in tools
 	toolRegistry := tools.NewRegistry()
 
-	// Register web search tool
-	webSearchTool := tools.NewWebSearchTool()
-	if err := toolRegistry.Register(webSearchTool); err != nil {
-		log.Fatalf("Failed to register web search tool: %v", err)
-	}
+	// NOTE: web_search is added manually in the LLM pipeline (openai.go)
+	// to ensure compatibility with the Responses API when mixing with custom function tools
+	// We use "web_search" type instead of "web_search_preview" for this purpose
 
 	// Create adapter for market data client
 	marketDataAdapter := &marketDataClientAdapter{client: client}
@@ -529,28 +527,9 @@ func (a *toolAdapter) Description() string {
 }
 
 func (a *toolAdapter) ToOpenAIFormat() map[string]any {
-	// Check if tool has ToOpenAIFormat method (e.g., *BaseTool)
-	if bt, ok := a.tool.(*tools.BaseTool); ok {
-		return bt.ToOpenAIFormat()
-	}
-
-	// Fallback: construct format manually
-	format := map[string]any{
-		"type": string(a.tool.Type()),
-		"name": a.tool.Name(),
-	}
-	if a.tool.Type() == tools.ToolTypeFunction {
-		format["function"] = map[string]any{
-			"name":        a.tool.Name(),
-			"description": a.tool.Description(),
-		}
-		if schema := a.tool.Schema(); schema != nil {
-			format["function"].(map[string]any)["parameters"] = schema.ToOpenAIFormat()
-		}
-	} else if a.tool.Type() == tools.ToolTypeCustom {
-		format["description"] = a.tool.Description()
-	}
-	return format
+	// Call the tool's ToOpenAIFormat method directly
+	// (All tools implement the Tool interface which includes ToOpenAIFormat)
+	return a.tool.ToOpenAIFormat()
 }
 
 func (a *toolAdapter) Execute(ctx context.Context, arguments map[string]any) (map[string]any, error) {
