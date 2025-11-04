@@ -6,10 +6,12 @@ import { useQuery } from '@tanstack/react-query';
 import { usePublicClient, useChainId } from 'wagmi';
 import { useGammaConfig } from '../../components/GammaProvider';
 import { MarketPrices } from '../../types';
-import { DEFAULT_CONTRACTS, MARKET_FACTORY_ABI, MARKET_AMM_ABI } from '../../constants';
+import { DEFAULT_CONTRACTS, MARKET_FACTORY_ABI } from '../../constants';
+import { getMarketContract } from '../../utils/markets';
 
 /**
  * Hook to get current prices for YES and NO outcomes
+ * Works with all market types (Binary, MultiChoice, etc.)
  * 
  * @example
  * ```tsx
@@ -43,7 +45,7 @@ export function usePrices(marketId: number | undefined) {
         throw new Error('MarketFactory address not configured');
       }
 
-      // Get market info to find AMM address
+      // Get market info to find market address
       const marketStruct = await publicClient.readContract({
         address: marketFactoryAddress,
         abi: MARKET_FACTORY_ABI,
@@ -51,20 +53,15 @@ export function usePrices(marketId: number | undefined) {
         args: [BigInt(marketId)],
       });
 
-      const ammAddress = marketStruct.amm;
+      const marketAddress = marketStruct.amm;
 
-      // Get prices from AMM contract
+      // Get the correct market contract based on type
+      const marketContract = await getMarketContract(publicClient, marketAddress);
+
+      // Get prices for YES (outcome 0) and NO (outcome 1)
       const [yesPrice, noPrice] = await Promise.all([
-        publicClient.readContract({
-          address: ammAddress,
-          abi: MARKET_AMM_ABI,
-          functionName: 'getYesPrice',
-        }),
-        publicClient.readContract({
-          address: ammAddress,
-          abi: MARKET_AMM_ABI,
-          functionName: 'getNoPrice',
-        }),
+        marketContract.getPrice(0n),
+        marketContract.getPrice(1n),
       ]);
 
       // Convert to simple 0-1 format
@@ -72,8 +69,8 @@ export function usePrices(marketId: number | undefined) {
       const noDecimal = Number(noPrice) / 1e18;
 
       return {
-        yesPrice: yesPrice as bigint,
-        noPrice: noPrice as bigint,
+        yesPrice,
+        noPrice,
         yes: yesDecimal,
         no: noDecimal,
       };

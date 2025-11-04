@@ -8,12 +8,9 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React from 'react';
 import { useQuote } from '../../../hooks/trading/useQuote';
 import { MarketFactory } from '../../../contracts/MarketFactory';
-import { MarketAMM } from '../../../contracts/MarketAMM';
+import { BinaryMarket } from '../../../contracts/BinaryMarket';
 import { DEFAULT_CONTRACTS, BNB_CHAIN } from '../../../constants';
-import {
-  mockPublicClient,
-  mockAddress,
-} from '../../mocks/viem';
+import { mockPublicClient, mockAddress } from '../../mocks/viem';
 
 vi.mock('wagmi', () => ({
   usePublicClient: vi.fn(),
@@ -26,7 +23,10 @@ vi.mock('../../../components/GammaProvider', () => ({
 }));
 
 vi.mock('../../../contracts/MarketFactory');
-vi.mock('../../../contracts/MarketAMM');
+vi.mock('../../../contracts/BinaryMarket');
+vi.mock('../../../utils', () => ({
+  getMarketContract: vi.fn(),
+}));
 
 const wrapper = ({ children }: { children: React.ReactNode }) => {
   const queryClient = new QueryClient({
@@ -85,12 +85,16 @@ describe('useQuote', () => {
     };
     vi.mocked(MarketFactoryModule.MarketFactory).mockImplementation(() => mockMarketFactory as any);
 
-    const MarketAMMModule = await import('../../../contracts/MarketAMM');
-    const mockMarketAMM = {
+    const BinaryMarketModule = await import('../../../contracts/BinaryMarket');
+    const mockBinaryMarket = {
       getBuyQuote: vi.fn().mockResolvedValue(mockBuyQuote),
       getMarketPrices: vi.fn().mockResolvedValue(mockPrices),
+      getPrice: vi.fn().mockResolvedValue(mockPrices.yesPrice),
     };
-    vi.mocked(MarketAMMModule.MarketAMM).mockImplementation(() => mockMarketAMM as any);
+    vi.mocked(BinaryMarketModule.BinaryMarket).mockImplementation(() => mockBinaryMarket as any);
+
+    const utilsModule = await import('../../../utils');
+    vi.mocked(utilsModule.getMarketContract).mockResolvedValue(mockBinaryMarket as any);
 
     const { result } = renderHook(() => useQuote({
       marketId: 1,
@@ -139,12 +143,16 @@ describe('useQuote', () => {
     };
     vi.mocked(MarketFactoryModule.MarketFactory).mockImplementation(() => mockMarketFactory as any);
 
-    const MarketAMMModule = await import('../../../contracts/MarketAMM');
-    const mockMarketAMM = {
+    const BinaryMarketModule = await import('../../../contracts/BinaryMarket');
+    const mockBinaryMarket = {
       getSellQuote: vi.fn().mockResolvedValue(mockSellQuote),
       getMarketPrices: vi.fn().mockResolvedValue(mockPrices),
+      getPrice: vi.fn().mockResolvedValue(mockPrices.yesPrice),
     };
-    vi.mocked(MarketAMMModule.MarketAMM).mockImplementation(() => mockMarketAMM as any);
+    vi.mocked(BinaryMarketModule.BinaryMarket).mockImplementation(() => mockBinaryMarket as any);
+
+    const utilsModule = await import('../../../utils');
+    vi.mocked(utilsModule.getMarketContract).mockResolvedValue(mockBinaryMarket as any);
 
     const { result } = renderHook(() => useQuote({
       marketId: 1,
@@ -215,12 +223,16 @@ describe('useQuote', () => {
     };
     vi.mocked(MarketFactoryModule.MarketFactory).mockImplementation(() => mockMarketFactory as any);
 
-    const MarketAMMModule = await import('../../../contracts/MarketAMM');
-    const mockMarketAMM = {
+    const BinaryMarketModule = await import('../../../contracts/BinaryMarket');
+    const mockBinaryMarket = {
       getBuyQuote: vi.fn().mockResolvedValue(mockBuyQuote),
       getMarketPrices: vi.fn().mockResolvedValue(mockPrices),
+      getPrice: vi.fn().mockResolvedValue(mockPrices.yesPrice),
     };
-    vi.mocked(MarketAMMModule.MarketAMM).mockImplementation(() => mockMarketAMM as any);
+    vi.mocked(BinaryMarketModule.BinaryMarket).mockImplementation(() => mockBinaryMarket as any);
+
+    const utilsModule = await import('../../../utils');
+    vi.mocked(utilsModule.getMarketContract).mockResolvedValue(mockBinaryMarket as any);
 
     const { result } = renderHook(() => useQuote({
       marketId: 1,

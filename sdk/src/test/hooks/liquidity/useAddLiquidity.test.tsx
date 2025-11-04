@@ -26,6 +26,10 @@ vi.mock('../../../components/GammaProvider', () => ({
   useGammaConfig: vi.fn(),
 }));
 
+vi.mock('../../../utils/markets', () => ({
+  getMarketContract: vi.fn(),
+}));
+
 const wrapper = ({ children }: { children: React.ReactNode }) => {
   const queryClient = new QueryClient({
     defaultOptions: {
@@ -73,6 +77,12 @@ describe('useAddLiquidity', () => {
       chainId: BNB_CHAIN.MAINNET,
       marketFactoryAddress: DEFAULT_CONFIG.marketFactoryAddress,
     });
+
+    const marketsModule = await import('../../../utils/markets');
+    const mockMarketContract = {
+      addLiquidity: vi.fn().mockResolvedValue(mockTransactionHash),
+    };
+    vi.mocked(marketsModule.getMarketContract).mockResolvedValue(mockMarketContract as any);
   });
 
   it('should add liquidity successfully', async () => {

@@ -1,13 +1,14 @@
 /**
- * MarketAMM contract interaction layer
+ * BinaryMarket contract interaction layer
+ * Binary prediction market with static 1:1 pricing and 2% fixed fee
  */
 
 import { Address, decodeEventLog } from 'viem';
 import { PublicClient, WalletClient } from 'viem';
-import { ContractError, TradeParams, TradeResult, MarketOutcome, MarketPrices } from '../types';
-import { MARKET_AMM_ABI, OUTCOME_TOKEN_ABI, ERC20_ABI } from '../constants';
+import { ContractError, TradeParams, TradeResult, MarketOutcome } from '../types';
+import { BINARY_MARKET_ABI, ERC20_ABI } from '../constants';
 
-export class MarketAMM {
+export class BinaryMarket {
   private client: PublicClient;
   private walletClient?: WalletClient;
   private address: Address;
@@ -34,7 +35,7 @@ export class MarketAMM {
     try {
       const result = await this.client.readContract({
         address: this.address,
-        abi: MARKET_AMM_ABI,
+        abi: BINARY_MARKET_ABI,
         functionName: 'collateralToken',
       });
 
@@ -89,6 +90,7 @@ export class MarketAMM {
 
   /**
    * Buy outcome tokens (YES or NO)
+   * Static 1:1 pricing with 2% fee
    */
   async buyTokens(params: TradeParams): Promise<TradeResult> {
     if (!this.walletClient) {
@@ -109,7 +111,7 @@ export class MarketAMM {
 
       const hash = await this.walletClient.writeContract({
         address: this.address,
-        abi: MARKET_AMM_ABI,
+        abi: BINARY_MARKET_ABI,
         functionName,
         args: [params.amount, minAmountOut],
         account,
@@ -118,65 +120,56 @@ export class MarketAMM {
 
       const receipt = await this.client.waitForTransactionReceipt({ hash });
 
-      // Extract amountOut from Trade event
+      // Extract amountOut from SharesPurchased event
       let amountOut = 0n;
       let fee = 0n;
       
       for (const log of receipt.logs) {
         try {
           const decodedLog = decodeEventLog({
-            abi: MARKET_AMM_ABI,
+            abi: BINARY_MARKET_ABI,
             data: log.data,
             topics: log.topics,
           });
           
-          if (decodedLog.eventName === 'Trade') {
+          if (decodedLog.eventName === 'SharesPurchased') {
             const eventArgs = decodedLog.args as {
-              trader: Address;
-              buyYes: boolean;
-              collateralIn: bigint;
-              tokensOut: bigint;
+              buyer: Address;
+              outcomeId: bigint;
+              shares: bigint;
+              collateralPaid: bigint;
               fee: bigint;
-              price: bigint;
             };
             
-            // Check if this is our trade (matching trader and outcome)
+            const expectedOutcomeId = params.outcome === 'YES' ? 0n : 1n;
+            
             if (
-              eventArgs.trader.toLowerCase() === account.toLowerCase() &&
-              eventArgs.buyYes === (params.outcome === 'YES')
+              eventArgs.buyer.toLowerCase() === account.toLowerCase() &&
+              eventArgs.outcomeId === expectedOutcomeId
             ) {
-              amountOut = eventArgs.tokensOut;
+              amountOut = eventArgs.shares;
               fee = eventArgs.fee;
               break;
             }
           }
         } catch {
-          // Not the event we're looking for, continue
           continue;
         }
       }
 
       if (amountOut === 0n) {
         throw new ContractError(
-          `Trade event not found or amountOut is zero for transaction ${hash}. ` +
-          'This may indicate the transaction failed.',
+          `SharesPurchased event not found for transaction ${hash}`,
           this.address
         );
       }
-
-      // Normalize outcome to MarketOutcome type
-      const normalizedOutcome: MarketOutcome = typeof params.outcome === 'string' 
-        ? params.outcome 
-        : params.outcome === 0n 
-          ? 'YES' 
-          : 'NO';
 
       return {
         success: true,
         transactionHash: hash,
         amountIn: params.amount,
         amountOut,
-        outcome: normalizedOutcome,
+        outcome: params.outcome as MarketOutcome,
         marketId: params.marketId,
       };
     } catch (error) {
@@ -190,6 +183,8 @@ export class MarketAMM {
 
   /**
    * Sell outcome tokens (YES or NO)
+   * Static 1:1 pricing with 2% fee
+   * Only allowed before market close
    */
   async sellTokens(params: TradeParams): Promise<TradeResult> {
     if (!this.walletClient) {
@@ -207,7 +202,7 @@ export class MarketAMM {
 
       const hash = await this.walletClient.writeContract({
         address: this.address,
-        abi: MARKET_AMM_ABI,
+        abi: BINARY_MARKET_ABI,
         functionName,
         args: [params.amount, minAmountOut],
         account,
@@ -216,71 +211,56 @@ export class MarketAMM {
 
       const receipt = await this.client.waitForTransactionReceipt({ hash });
 
-      // Extract amountOut from Trade event
+      // Extract amountOut from SharesSold event
       let amountOut = 0n;
       let fee = 0n;
       
       for (const log of receipt.logs) {
         try {
           const decodedLog = decodeEventLog({
-            abi: MARKET_AMM_ABI,
+            abi: BINARY_MARKET_ABI,
             data: log.data,
             topics: log.topics,
           });
           
-          if (decodedLog.eventName === 'Trade') {
+          if (decodedLog.eventName === 'SharesSold') {
             const eventArgs = decodedLog.args as {
-              trader: Address;
-              buyYes: boolean;
-              collateralIn: bigint;
-              tokensOut: bigint;
+              seller: Address;
+              outcomeId: bigint;
+              shares: bigint;
+              collateralReceived: bigint;
               fee: bigint;
-              price: bigint;
             };
             
-            // For sell operations:
-            // - buyYes = false
-            // - collateralIn = 0 (no collateral sent in)
-            // - tokensOut = collateral amount received
-            // Check if this is our sell trade
+            const expectedOutcomeId = params.outcome === 'YES' ? 0n : 1n;
+            
             if (
-              eventArgs.trader.toLowerCase() === account.toLowerCase() &&
-              eventArgs.buyYes === false &&
-              eventArgs.collateralIn === 0n
+              eventArgs.seller.toLowerCase() === account.toLowerCase() &&
+              eventArgs.outcomeId === expectedOutcomeId
             ) {
-              // For sell operations, tokensOut represents collateralOut
-              amountOut = eventArgs.tokensOut;
+              amountOut = eventArgs.collateralReceived;
               fee = eventArgs.fee;
               break;
             }
           }
         } catch {
-          // Not the event we're looking for, continue
           continue;
         }
       }
 
       if (amountOut === 0n) {
         throw new ContractError(
-          `Trade event not found or amountOut is zero for transaction ${hash}. ` +
-          'This may indicate the transaction failed or insufficient tokens were sold.',
+          `SharesSold event not found for transaction ${hash}`,
           this.address
         );
       }
-
-      // Normalize outcome to MarketOutcome type
-      const normalizedOutcome: MarketOutcome = typeof params.outcome === 'string' 
-        ? params.outcome 
-        : params.outcome === 0n 
-          ? 'YES' 
-          : 'NO';
 
       return {
         success: true,
         transactionHash: hash,
         amountIn: params.amount,
         amountOut,
-        outcome: normalizedOutcome,
+        outcome: params.outcome as MarketOutcome,
         marketId: params.marketId,
       };
     } catch (error) {
@@ -294,14 +274,15 @@ export class MarketAMM {
 
   /**
    * Get current price for an outcome
+   * BinaryMarket uses static 50/50 pricing (always returns 0.5)
    */
-  async getPrice(marketId: bigint, outcome: MarketOutcome): Promise<bigint> {
+  async getPrice(outcomeId: bigint): Promise<bigint> {
     try {
-      const functionName = outcome === 'YES' ? 'getYesPrice' : 'getNoPrice';
       const result = await this.client.readContract({
         address: this.address,
-        abi: MARKET_AMM_ABI,
-        functionName,
+        abi: BINARY_MARKET_ABI,
+        functionName: 'getPrice',
+        args: [outcomeId],
       });
 
       return result as bigint;
@@ -315,30 +296,30 @@ export class MarketAMM {
   }
 
   /**
-   * Get market prices for both outcomes
+   * Get buy quote with fee calculation
    */
-  async getMarketPrices(marketId: bigint): Promise<MarketPrices> {
+  async getBuyQuote(
+    collateralIn: bigint,
+    outcome: MarketOutcome,
+    userAddress: Address
+  ): Promise<{ tokensOut: bigint; fee: bigint }> {
     try {
-      const [yesPrice, noPrice] = await Promise.all([
-        this.client.readContract({
-          address: this.address,
-          abi: MARKET_AMM_ABI,
-          functionName: 'getYesPrice',
-        }),
-        this.client.readContract({
-          address: this.address,
-          abi: MARKET_AMM_ABI,
-          functionName: 'getNoPrice',
-        }),
-      ]);
+      const outcomeId = outcome === 'YES' ? 0n : 1n;
+      
+      const result = await this.client.readContract({
+        address: this.address,
+        abi: BINARY_MARKET_ABI,
+        functionName: 'getQuoteBuy',
+        args: [outcomeId, collateralIn, userAddress],
+      }) as [bigint, bigint];
 
       return {
-        yesPrice: yesPrice as bigint,
-        noPrice: noPrice as bigint,
+        tokensOut: result[0],
+        fee: result[1],
       };
     } catch (error) {
       throw new ContractError(
-        `Failed to get market prices: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        `Failed to get buy quote: ${error instanceof Error ? error.message : 'Unknown error'}`,
         this.address,
         error
       );
@@ -346,30 +327,54 @@ export class MarketAMM {
   }
 
   /**
-   * Get liquidity amounts (reserves)
+   * Get sell quote with fee calculation
    */
-  async getLiquidity(marketId: bigint): Promise<{ yes: bigint; no: bigint }> {
+  async getSellQuote(
+    tokensIn: bigint,
+    outcome: MarketOutcome,
+    userAddress: Address
+  ): Promise<{ collateralOut: bigint; fee: bigint }> {
     try {
-      const [yesReserve, noReserve] = await Promise.all([
-        this.client.readContract({
-          address: this.address,
-          abi: MARKET_AMM_ABI,
-          functionName: 'reserveYes',
-        }),
-        this.client.readContract({
-          address: this.address,
-          abi: MARKET_AMM_ABI,
-          functionName: 'reserveNo',
-        }),
-      ]);
+      const outcomeId = outcome === 'YES' ? 0n : 1n;
+      
+      const result = await this.client.readContract({
+        address: this.address,
+        abi: BINARY_MARKET_ABI,
+        functionName: 'getQuoteSell',
+        args: [outcomeId, tokensIn, userAddress],
+      }) as [bigint, bigint];
 
       return {
-        yes: yesReserve as bigint,
-        no: noReserve as bigint,
+        collateralOut: result[0],
+        fee: result[1],
       };
     } catch (error) {
       throw new ContractError(
-        `Failed to get liquidity: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        `Failed to get sell quote: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        this.address,
+        error
+      );
+    }
+  }
+
+  /**
+   * Get liquidity reserves (pools)
+   */
+  async getReserves(): Promise<{ yes: bigint; no: bigint }> {
+    try {
+      const result = await this.client.readContract({
+        address: this.address,
+        abi: BINARY_MARKET_ABI,
+        functionName: 'getReserves',
+      }) as [bigint, bigint];
+
+      return {
+        yes: result[0],
+        no: result[1],
+      };
+    } catch (error) {
+      throw new ContractError(
+        `Failed to get reserves: ${error instanceof Error ? error.message : 'Unknown error'}`,
         this.address,
         error
       );
@@ -383,7 +388,7 @@ export class MarketAMM {
     try {
       const result = await this.client.readContract({
         address: this.address,
-        abi: MARKET_AMM_ABI,
+        abi: BINARY_MARKET_ABI,
         functionName: 'balanceOf',
         args: [userAddress],
       });
@@ -403,52 +408,13 @@ export class MarketAMM {
    */
   async getTotalLPSupply(): Promise<bigint> {
     try {
-      // Try to read totalSupply, if not available, sum all balances via events
-      // For now, we'll use a workaround: if LP tokens follow ERC20, totalSupply should exist
-      // Otherwise, we estimate from liquidity values
       const result = await this.client.readContract({
         address: this.address,
-        abi: [
-          ...MARKET_AMM_ABI,
-          {
-            type: 'function',
-            name: 'totalSupply',
-            inputs: [],
-            outputs: [{ name: '', type: 'uint256' }],
-            stateMutability: 'view',
-          },
-        ],
+        abi: BINARY_MARKET_ABI,
         functionName: 'totalSupply',
-      }).catch(() => {
-        // If totalSupply doesn't exist, estimate from reserves
-        // This is an approximation for AMM pools
-        return null;
       });
 
-      if (result !== null) {
-        return result as bigint;
-      }
-
-      // Fallback: estimate from liquidity (square root of product for constant product AMM)
-      const liquidity = await this.getLiquidity(0n); // marketId not needed for liquidity
-      
-      // For constant product AMM: LP tokens ≈ sqrt(x * y)
-      // Calculate geometric mean using BigInt arithmetic
-      if (liquidity.yes > 0n && liquidity.no > 0n) {
-        const product = liquidity.yes * liquidity.no;
-        // Approximate square root using Babylonian method
-        let sqrt = product;
-        if (sqrt > 0n) {
-          let x = sqrt;
-          while (x * x > product) {
-            x = (x + product / x) / 2n;
-          }
-          sqrt = x;
-        }
-        return sqrt;
-      }
-      
-      return 0n;
+      return result as bigint;
     } catch (error) {
       throw new ContractError(
         `Failed to get total LP supply: ${error instanceof Error ? error.message : 'Unknown error'}`,
@@ -459,42 +425,7 @@ export class MarketAMM {
   }
 
   /**
-   * Get user balance for a specific outcome token
-   * Note: This uses the OutcomeToken contract (ERC-1155), not the AMM contract
-   */
-  async getUserBalance(
-    userAddress: Address,
-    marketId: bigint,
-    outcome: MarketOutcome,
-    outcomeTokenAddress: Address
-  ): Promise<bigint> {
-    try {
-      // Outcome IDs: 0 = YES, 1 = NO
-      const outcomeId = outcome === 'YES' ? 0n : 1n;
-      
-      // Token ID encoding: (marketId << 8) | outcomeId
-      const tokenId = (marketId << 8n) | outcomeId;
-      
-      const result = await this.client.readContract({
-        address: outcomeTokenAddress,
-        abi: OUTCOME_TOKEN_ABI,
-        functionName: 'balanceOf',
-        args: [userAddress, tokenId],
-      });
-
-      return result as bigint;
-    } catch (error) {
-      throw new ContractError(
-        `Failed to get user balance: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        this.address,
-        error
-      );
-    }
-  }
-
-  /**
-   * Add liquidity to a market
-   * @param amount Amount of collateral tokens to add as liquidity
+   * Add liquidity to the market
    */
   async addLiquidity(amount: bigint): Promise<string> {
     if (!this.walletClient) {
@@ -512,7 +443,7 @@ export class MarketAMM {
 
       const hash = await this.walletClient.writeContract({
         address: this.address,
-        abi: MARKET_AMM_ABI,
+        abi: BINARY_MARKET_ABI,
         functionName: 'addLiquidity',
         args: [amount],
         account,
@@ -531,8 +462,7 @@ export class MarketAMM {
   }
 
   /**
-   * Remove liquidity from a market
-   * @param lpTokens Amount of LP tokens to burn
+   * Remove liquidity from the market
    */
   async removeLiquidity(lpTokens: bigint): Promise<string> {
     if (!this.walletClient) {
@@ -547,7 +477,7 @@ export class MarketAMM {
 
       const hash = await this.walletClient.writeContract({
         address: this.address,
-        abi: MARKET_AMM_ABI,
+        abi: BINARY_MARKET_ABI,
         functionName: 'removeLiquidity',
         args: [lpTokens],
         account,
@@ -566,67 +496,8 @@ export class MarketAMM {
   }
 
   /**
-   * Get quote for buying tokens
-   */
-  async getBuyQuote(
-    collateralIn: bigint,
-    outcome: MarketOutcome,
-    userAddress: Address
-  ): Promise<{ tokensOut: bigint; fee: bigint }> {
-    try {
-      const functionName = outcome === 'YES' ? 'getQuoteBuyYes' : 'getQuoteBuyNo';
-      const result = await this.client.readContract({
-        address: this.address,
-        abi: MARKET_AMM_ABI,
-        functionName,
-        args: [collateralIn, userAddress],
-      }) as [bigint, bigint];
-
-      return {
-        tokensOut: result[0],
-        fee: result[1],
-      };
-    } catch (error) {
-      throw new ContractError(
-        `Failed to get buy quote: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        this.address,
-        error
-      );
-    }
-  }
-
-  /**
-   * Get quote for selling tokens
-   */
-  async getSellQuote(
-    tokensIn: bigint,
-    outcome: MarketOutcome,
-    userAddress: Address
-  ): Promise<{ collateralOut: bigint; fee: bigint }> {
-    try {
-      const functionName = outcome === 'YES' ? 'getQuoteSellYes' : 'getQuoteSellNo';
-      const result = await this.client.readContract({
-        address: this.address,
-        abi: MARKET_AMM_ABI,
-        functionName,
-        args: [tokensIn, userAddress],
-      }) as [bigint, bigint];
-
-      return {
-        collateralOut: result[0],
-        fee: result[1],
-      };
-    } catch (error) {
-      throw new ContractError(
-        `Failed to get sell quote: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        this.address,
-        error
-      );
-    }
-  }
-
-  /**
-   * Fund redemptions - transfers collateral to OutcomeToken after market resolution
+   * Fund redemptions after market resolution
+   * Transfers collateral to OutcomeToken for 1:1 redemptions
    */
   async fundRedemptions(): Promise<string> {
     if (!this.walletClient) {
@@ -641,7 +512,7 @@ export class MarketAMM {
 
       const hash = await this.walletClient.writeContract({
         address: this.address,
-        abi: MARKET_AMM_ABI,
+        abi: BINARY_MARKET_ABI,
         functionName: 'fundRedemptions',
         args: [],
         account,
@@ -653,6 +524,69 @@ export class MarketAMM {
     } catch (error) {
       throw new ContractError(
         `Failed to fund redemptions: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        this.address,
+        error
+      );
+    }
+  }
+
+  /**
+   * Get market ID
+   */
+  async getMarketId(): Promise<bigint> {
+    try {
+      const result = await this.client.readContract({
+        address: this.address,
+        abi: BINARY_MARKET_ABI,
+        functionName: 'marketId',
+      });
+
+      return result as bigint;
+    } catch (error) {
+      throw new ContractError(
+        `Failed to get market ID: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        this.address,
+        error
+      );
+    }
+  }
+
+  /**
+   * Get market close time
+   */
+  async getCloseTime(): Promise<bigint> {
+    try {
+      const result = await this.client.readContract({
+        address: this.address,
+        abi: BINARY_MARKET_ABI,
+        functionName: 'closeTime',
+      });
+
+      return result as bigint;
+    } catch (error) {
+      throw new ContractError(
+        `Failed to get close time: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        this.address,
+        error
+      );
+    }
+  }
+
+  /**
+   * Get total collateral in market
+   */
+  async getTotalCollateral(): Promise<bigint> {
+    try {
+      const result = await this.client.readContract({
+        address: this.address,
+        abi: BINARY_MARKET_ABI,
+        functionName: 'totalCollateral',
+      });
+
+      return result as bigint;
+    } catch (error) {
+      throw new ContractError(
+        `Failed to get total collateral: ${error instanceof Error ? error.message : 'Unknown error'}`,
         this.address,
         error
       );

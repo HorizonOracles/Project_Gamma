@@ -13,7 +13,7 @@ export type MarketOutcome = 'YES' | 'NO';
  * Market type enumeration matching IMarket.MarketType
  */
 export enum MarketType {
-  Binary = 0, // Traditional Yes/No market (MarketAMM)
+  Binary = 0, // Traditional Yes/No market (BinaryMarket)
   MultiChoice = 1, // 3-8 discrete outcomes (MultiChoiceMarket)
   LimitOrder = 2, // Order book based market (LimitOrderMarket)
   PooledLiquidity = 3, // Concentrated liquidity AMM (PooledLiquidityMarket)
@@ -39,6 +39,9 @@ export enum MarketStatus {
  * - category: Market category string
  * - metadataURI: IPFS URI containing market question and details
  * - creatorStake: Amount of HORIZON tokens to stake (must be >= minCreatorStake)
+ * - marketType: Type of market (0=Binary, 1=MultiChoice, 2=LimitOrder, 3=PooledLiquidity)
+ * - outcomeCount: Number of outcomes (2 for binary, 3-8 for multi-choice)
+ * - liquidityParameter: LMSR liquidity parameter (only for MultiChoice markets, otherwise 0)
  */
 export interface CreateMarketParams {
   question: string;
@@ -54,6 +57,9 @@ export interface CreateMarketParams {
   category: string;
   metadataURI: string;
   creatorStake: bigint;
+  marketType?: MarketType; // Defaults to Binary (0) if not provided
+  outcomeCount?: number; // Defaults to 2 if not provided
+  liquidityParameter?: bigint; // Defaults to 0n if not provided (only used for MultiChoice)
 }
 
 /**
@@ -168,7 +174,30 @@ export interface UserPosition {
 }
 
 /**
- * Resolution proposal from AI resolver
+ * ProposedOutcome struct matching AIOracleAdapter contract
+ * Used for EIP-712 signing of AI resolution proposals
+ */
+export interface ProposedOutcome {
+  marketId: bigint;
+  outcomeId: bigint;
+  closeTime: bigint;
+  evidenceHash: `0x${string}`;
+  notBefore: bigint;
+  deadline: bigint;
+}
+
+/**
+ * EIP-712 domain fields for AIOracleAdapter
+ */
+export interface EIP712Domain {
+  name: string;
+  version: string;
+  chainId: number;
+  verifyingContract: Address;
+}
+
+/**
+ * Resolution proposal from AI resolver (legacy)
  */
 export interface ResolutionProposal {
   marketId: bigint;

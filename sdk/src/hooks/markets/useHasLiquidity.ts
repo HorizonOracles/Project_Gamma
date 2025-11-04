@@ -5,10 +5,12 @@
 import { useQuery } from '@tanstack/react-query';
 import { usePublicClient, useChainId } from 'wagmi';
 import { useGammaConfig } from '../../components/GammaProvider';
-import { DEFAULT_CONTRACTS, MARKET_FACTORY_ABI, MARKET_AMM_ABI } from '../../constants';
+import { DEFAULT_CONTRACTS, MARKET_FACTORY_ABI } from '../../constants';
+import { getMarketContract } from '../../utils/markets';
 
 /**
  * Hook to check if a market has liquidity
+ * Works with all market types (Binary, MultiChoice, etc.)
  * 
  * @example
  * ```tsx
@@ -43,7 +45,7 @@ export function useHasLiquidity(marketId: number | undefined) {
         return false;
       }
 
-      // Get market info to find AMM address
+      // Get market info to find market address
       const marketStruct = await publicClient.readContract({
         address: marketFactoryAddress,
         abi: MARKET_FACTORY_ABI,
@@ -51,20 +53,18 @@ export function useHasLiquidity(marketId: number | undefined) {
         args: [BigInt(marketId)],
       });
 
-      const ammAddress = marketStruct.amm;
+      const marketAddress = marketStruct.amm;
+
+      // Get the correct market contract based on type
+      const marketContract = await getMarketContract(publicClient, marketAddress);
 
       // Check if there's liquidity by checking totalCollateral
       // A market has liquidity if totalCollateral > 0
-      const totalCollateral = await publicClient.readContract({
-        address: ammAddress,
-        abi: MARKET_AMM_ABI,
-        functionName: 'totalCollateral',
-      });
+      const totalCollateral = await marketContract.getTotalCollateral();
 
-      return (totalCollateral as bigint) > 0n;
+      return totalCollateral > 0n;
     },
     enabled: !!marketId && !!publicClient,
     refetchInterval: 10000, // Refetch every 10 seconds
   });
 }
-

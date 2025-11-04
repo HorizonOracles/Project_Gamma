@@ -5,6 +5,12 @@
 import { Address, formatUnits, parseUnits } from 'viem';
 import { MarketOutcome, MarketPrices, TradeError } from '../types';
 
+// Re-export market utilities
+export * from './markets';
+
+// Re-export LMSR pricing utilities
+export * from './pricing';
+
 /**
  * Format a bigint value to a human-readable string
  */

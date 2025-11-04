@@ -70,6 +70,8 @@ export type {
   UserPosition,
   MarketPrices,
   ResolutionProposal,
+  ProposedOutcome,
+  EIP712Domain,
   FeeTier,
   OracleRequest,
   OracleResult,
@@ -95,7 +97,56 @@ export {
   getMarketIdFromTokenId,
   getOutcomeFromTokenId,
   applySlippageTolerance,
+  // Market utilities
+  getMarketType,
+  getMarketTypeFromContract,
+  getOutcomeCount,
+  isBinaryMarket,
+  isMultiChoiceMarket,
+  isLimitOrderMarket,
+  isPooledLiquidityMarket,
+  instantiateMarketContract,
+  getMarketContract,
 } from './utils';
+
+// Evidence utilities
+export {
+  computeEvidenceHash,
+  validateEvidenceURIs,
+  sortEvidenceURIs,
+} from './utils/evidence';
+
+// EIP-712 utilities
+export {
+  computeDomainSeparator,
+  createAIOracleDomain,
+  computeStructHash,
+  computeProposalDigest,
+  computeProposalHash,
+  buildProposedOutcome,
+  validateProposedOutcome,
+  EIP712_DOMAIN_TYPEHASH,
+  PROPOSED_OUTCOME_TYPEHASH,
+} from './utils/eip712';
+
+// Signature utilities
+export {
+  signProposal,
+  signProposalWithAccount,
+  normalizeSignature,
+  splitSignature,
+  joinSignature,
+  verifyProposalSignature,
+  isValidProposalSignature,
+  isValidSignature,
+  hashSignature,
+  createAccountFromPrivateKey,
+  formatSignature,
+} from './utils/signature';
+export type {
+  SignatureComponents,
+  Signature,
+} from './utils/signature';
 
 // IPFS utilities
 export {

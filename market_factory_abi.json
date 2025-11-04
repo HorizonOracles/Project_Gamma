@@ -1,0 +1,957 @@
+[
+  {
+    "type": "constructor",
+    "inputs": [
+      {
+        "name": "_outcomeToken",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "_feeSplitter",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "_horizonPerks",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "_horizonToken",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "allMarketIds",
+    "inputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "createMarket",
+    "inputs": [
+      {
+        "name": "params",
+        "type": "tuple",
+        "internalType": "struct MarketFactory.MarketParams",
+        "components": [
+          {
+            "name": "marketType",
+            "type": "uint8",
+            "internalType": "uint8"
+          },
+          {
+            "name": "collateralToken",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "closeTime",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "category",
+            "type": "string",
+            "internalType": "string"
+          },
+          {
+            "name": "metadataURI",
+            "type": "string",
+            "internalType": "string"
+          },
+          {
+            "name": "creatorStake",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "outcomeCount",
+            "type": "uint8",
+            "internalType": "uint8"
+          },
+          {
+            "name": "liquidityParameter",
+            "type": "uint256",
+            "internalType": "uint256"
+          }
+        ]
+      }
+    ],
+    "outputs": [
+      {
+        "name": "marketId",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "feeSplitter",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "contract FeeSplitter"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getActiveMarkets",
+    "inputs": [
+      {
+        "name": "offset",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "limit",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "tuple[]",
+        "internalType": "struct MarketFactory.Market[]",
+        "components": [
+          {
+            "name": "id",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "creator",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "marketType",
+            "type": "uint8",
+            "internalType": "uint8"
+          },
+          {
+            "name": "amm",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "collateralToken",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "closeTime",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "category",
+            "type": "string",
+            "internalType": "string"
+          },
+          {
+            "name": "metadataURI",
+            "type": "string",
+            "internalType": "string"
+          },
+          {
+            "name": "creatorStake",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "outcomeCount",
+            "type": "uint8",
+            "internalType": "uint8"
+          },
+          {
+            "name": "stakeRefunded",
+            "type": "bool",
+            "internalType": "bool"
+          },
+          {
+            "name": "status",
+            "type": "uint8",
+            "internalType": "enum MarketFactory.MarketStatus"
+          }
+        ]
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getAllMarketIds",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256[]",
+        "internalType": "uint256[]"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getMarket",
+    "inputs": [
+      {
+        "name": "marketId",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "tuple",
+        "internalType": "struct MarketFactory.Market",
+        "components": [
+          {
+            "name": "id",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "creator",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "marketType",
+            "type": "uint8",
+            "internalType": "uint8"
+          },
+          {
+            "name": "amm",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "collateralToken",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "closeTime",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "category",
+            "type": "string",
+            "internalType": "string"
+          },
+          {
+            "name": "metadataURI",
+            "type": "string",
+            "internalType": "string"
+          },
+          {
+            "name": "creatorStake",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "outcomeCount",
+            "type": "uint8",
+            "internalType": "uint8"
+          },
+          {
+            "name": "stakeRefunded",
+            "type": "bool",
+            "internalType": "bool"
+          },
+          {
+            "name": "status",
+            "type": "uint8",
+            "internalType": "enum MarketFactory.MarketStatus"
+          }
+        ]
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getMarketCount",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getMarketIdsByCategory",
+    "inputs": [
+      {
+        "name": "category",
+        "type": "string",
+        "internalType": "string"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256[]",
+        "internalType": "uint256[]"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getMarketIdsByCreator",
+    "inputs": [
+      {
+        "name": "creator",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256[]",
+        "internalType": "uint256[]"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getMarkets",
+    "inputs": [
+      {
+        "name": "offset",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "limit",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "tuple[]",
+        "internalType": "struct MarketFactory.Market[]",
+        "components": [
+          {
+            "name": "id",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "creator",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "marketType",
+            "type": "uint8",
+            "internalType": "uint8"
+          },
+          {
+            "name": "amm",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "collateralToken",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "closeTime",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "category",
+            "type": "string",
+            "internalType": "string"
+          },
+          {
+            "name": "metadataURI",
+            "type": "string",
+            "internalType": "string"
+          },
+          {
+            "name": "creatorStake",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "outcomeCount",
+            "type": "uint8",
+            "internalType": "uint8"
+          },
+          {
+            "name": "stakeRefunded",
+            "type": "bool",
+            "internalType": "bool"
+          },
+          {
+            "name": "status",
+            "type": "uint8",
+            "internalType": "enum MarketFactory.MarketStatus"
+          }
+        ]
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "horizonPerks",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "contract HorizonPerks"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "horizonToken",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "contract IERC20"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "marketExists",
+    "inputs": [
+      {
+        "name": "marketId",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "markets",
+    "inputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "id",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "creator",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "marketType",
+        "type": "uint8",
+        "internalType": "uint8"
+      },
+      {
+        "name": "amm",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "collateralToken",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "closeTime",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "category",
+        "type": "string",
+        "internalType": "string"
+      },
+      {
+        "name": "metadataURI",
+        "type": "string",
+        "internalType": "string"
+      },
+      {
+        "name": "creatorStake",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "outcomeCount",
+        "type": "uint8",
+        "internalType": "uint8"
+      },
+      {
+        "name": "stakeRefunded",
+        "type": "bool",
+        "internalType": "bool"
+      },
+      {
+        "name": "status",
+        "type": "uint8",
+        "internalType": "enum MarketFactory.MarketStatus"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "marketsByCategory",
+    "inputs": [
+      {
+        "name": "",
+        "type": "string",
+        "internalType": "string"
+      },
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "marketsByCreator",
+    "inputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "minCreatorStake",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "nextMarketId",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "outcomeToken",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "contract OutcomeToken"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "owner",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "refundCreatorStake",
+    "inputs": [
+      {
+        "name": "marketId",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "renounceOwnership",
+    "inputs": [],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "setMinCreatorStake",
+    "inputs": [
+      {
+        "name": "newMinStake",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "transferOwnership",
+    "inputs": [
+      {
+        "name": "newOwner",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "updateMarketStatus",
+    "inputs": [
+      {
+        "name": "marketId",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "event",
+    "name": "CreatorStakeRefunded",
+    "inputs": [
+      {
+        "name": "marketId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "creator",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "amount",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "MarketCreated",
+    "inputs": [
+      {
+        "name": "marketId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "creator",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "ammAddress",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "collateralToken",
+        "type": "address",
+        "indexed": false,
+        "internalType": "address"
+      },
+      {
+        "name": "closeTime",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "category",
+        "type": "string",
+        "indexed": false,
+        "internalType": "string"
+      },
+      {
+        "name": "metadataURI",
+        "type": "string",
+        "indexed": false,
+        "internalType": "string"
+      },
+      {
+        "name": "creatorStake",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "MarketStatusUpdated",
+    "inputs": [
+      {
+        "name": "marketId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "oldStatus",
+        "type": "uint8",
+        "indexed": false,
+        "internalType": "enum MarketFactory.MarketStatus"
+      },
+      {
+        "name": "newStatus",
+        "type": "uint8",
+        "indexed": false,
+        "internalType": "enum MarketFactory.MarketStatus"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "MinCreatorStakeUpdated",
+    "inputs": [
+      {
+        "name": "oldStake",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "newStake",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "OwnershipTransferred",
+    "inputs": [
+      {
+        "name": "previousOwner",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "newOwner",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "error",
+    "name": "InvalidAddress",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InvalidCategory",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InvalidCloseTime",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InvalidCollateral",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InvalidCreatorStake",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InvalidLiquidityParameter",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InvalidMarketType",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InvalidOutcomeCount",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "MarketDoesNotExist",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "MarketNotResolved",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "NotMarketCreator",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "OwnableInvalidOwner",
+    "inputs": [
+      {
+        "name": "owner",
+        "type": "address",
+        "internalType": "address"
+      }
+    ]
+  },
+  {
+    "type": "error",
+    "name": "OwnableUnauthorizedAccount",
+    "inputs": [
+      {
+        "name": "account",
+        "type": "address",
+        "internalType": "address"
+      }
+    ]
+  },
+  {
+    "type": "error",
+    "name": "ReentrancyGuardReentrantCall",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "SafeERC20FailedOperation",
+    "inputs": [
+      {
+        "name": "token",
+        "type": "address",
+        "internalType": "address"
+      }
+    ]
+  },
+  {
+    "type": "error",
+    "name": "StakeAlreadyClaimed",
+    "inputs": []
+  }
+]

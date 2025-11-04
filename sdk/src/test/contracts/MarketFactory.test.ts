@@ -24,6 +24,10 @@ vi.mock('viem', async () => {
   };
 });
 
+vi.mock('../../utils/markets', () => ({
+  getMarketContract: vi.fn(),
+}));
+
 describe('MarketFactory', () => {
   let marketFactory: MarketFactory;
   const factoryAddress = '0x22Cc806047BB825aa26b766Af737E92B1866E8A6' as const;
@@ -133,6 +137,15 @@ describe('MarketFactory', () => {
   });
 
   describe('getMarket', () => {
+    beforeEach(async () => {
+      // Mock getMarketContract
+      const marketsModule = await import('../../utils/markets');
+      const mockMarketContract = {
+        getReserves: vi.fn().mockResolvedValue({ yes: 1000000n, no: 1000000n }),
+      };
+      vi.mocked(marketsModule.getMarketContract).mockResolvedValue(mockMarketContract as any);
+    });
+
     it('should fetch market information correctly', async () => {
       const mockResult = {
         id: mockMarketId,
@@ -149,8 +162,6 @@ describe('MarketFactory', () => {
 
       mockPublicClient.readContract
         .mockResolvedValueOnce(mockResult) // getMarket
-        .mockResolvedValueOnce(1000000n) // reserveYes
-        .mockResolvedValueOnce(1000000n) // reserveNo
         .mockResolvedValueOnce({ marketType: 0, outcomeCount: 2n }); // getMarketInfo
       mockPublicClient.getLogs = vi.fn().mockResolvedValue([]);
       mockPublicClient.getBlock = vi.fn().mockResolvedValue({ timestamp: BigInt(Math.floor(Date.now() / 1000)) } as any);
@@ -187,10 +198,15 @@ describe('MarketFactory', () => {
           status: statusCode,
         };
 
+        // Reset mocks for each iteration
+        const marketsModule = await import('../../utils/markets');
+        const mockMarketContract = {
+          getReserves: vi.fn().mockResolvedValue({ yes: 0n, no: 0n }),
+        };
+        vi.mocked(marketsModule.getMarketContract).mockResolvedValue(mockMarketContract as any);
+
         mockPublicClient.readContract
           .mockResolvedValueOnce(mockMarketStruct) // getMarket
-          .mockResolvedValueOnce(0n) // reserveYes
-          .mockResolvedValueOnce(0n) // reserveNo
           .mockResolvedValueOnce({ marketType: 0, outcomeCount: 2n }); // getMarketInfo
         mockPublicClient.getLogs = vi.fn().mockResolvedValue([]);
 

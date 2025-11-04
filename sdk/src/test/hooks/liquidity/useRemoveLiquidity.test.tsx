@@ -26,6 +26,10 @@ vi.mock('../../../components/GammaProvider', () => ({
   useGammaConfig: vi.fn(),
 }));
 
+vi.mock('../../../utils/markets', () => ({
+  getMarketContract: vi.fn(),
+}));
+
 const wrapper = ({ children }: { children: React.ReactNode }) => {
   const queryClient = new QueryClient({
     defaultOptions: {
@@ -66,6 +70,13 @@ describe('useRemoveLiquidity', () => {
       chainId: BNB_CHAIN.MAINNET,
       marketFactoryAddress: DEFAULT_CONFIG.marketFactoryAddress,
     });
+    
+    // Mock getMarketContract
+    const marketsModule = await import('../../../utils/markets');
+    const mockMarketContract = {
+      removeLiquidity: vi.fn().mockResolvedValue(mockTransactionHash),
+    };
+    vi.mocked(marketsModule.getMarketContract).mockResolvedValue(mockMarketContract as any);
   });
 
   it('should remove liquidity successfully', async () => {

@@ -6,9 +6,9 @@ import { useQuery } from '@tanstack/react-query';
 import { useAccount, usePublicClient, useChainId } from 'wagmi';
 import { useGammaConfig } from '../../components/GammaProvider';
 import { TradeQuote, MarketOutcome } from '../../types';
-import { MarketAMM } from '../../contracts/MarketAMM';
 import { MarketFactory } from '../../contracts/MarketFactory';
 import { DEFAULT_CONTRACTS } from '../../constants';
+import { getMarketContract } from '../../utils';
 
 export interface QuoteParams {
   marketId: number;
@@ -68,17 +68,18 @@ export function useQuote(params: QuoteParams | undefined) {
         throw new Error('MarketFactory address not configured');
       }
 
-      // Resolve market AMM address
+      // Resolve market address from factory
       const marketFactory = new MarketFactory(publicClient, marketFactoryAddress);
       const marketInfo = await marketFactory.getMarket(BigInt(params.marketId));
-      const ammAddress = marketInfo.marketAddress;
+      const marketAddress = marketInfo.marketAddress;
 
-      // Create MarketAMM instance
-      const amm = new MarketAMM(publicClient, ammAddress);
+      // Instantiate correct market contract based on type (auto-detects)
+      const market = await getMarketContract(publicClient, marketAddress);
       const outcome: MarketOutcome = params.outcomeId === 0 ? 'YES' : 'NO';
 
-      // Get current prices for price impact calculation
-      const currentPrices = await amm.getMarketPrices(BigInt(params.marketId));
+      // Get current price for price impact calculation
+      const outcomeId = params.outcomeId === 0 ? 0n : 1n;
+      const currentPrice = await market.getPrice(outcomeId);
 
       let tokensOut: bigint;
       let fee: bigint;
@@ -86,12 +87,11 @@ export function useQuote(params: QuoteParams | undefined) {
 
       if (params.isBuy) {
         // Get buy quote
-        const quote = await amm.getBuyQuote(params.amount, outcome, address);
+        const quote = await market.getBuyQuote(params.amount, outcome, address);
         tokensOut = quote.tokensOut;
         fee = quote.fee;
 
         // Calculate price impact: ((currentPrice - executionPrice) / currentPrice) * 100
-        const currentPrice = outcome === 'YES' ? currentPrices.yesPrice : currentPrices.noPrice;
         const executionPrice = params.amount > 0n 
           ? (tokensOut * 10n**18n) / params.amount 
           : currentPrice;
@@ -102,12 +102,11 @@ export function useQuote(params: QuoteParams | undefined) {
         }
       } else {
         // Get sell quote
-        const quote = await amm.getSellQuote(params.amount, outcome, address);
+        const quote = await market.getSellQuote(params.amount, outcome, address);
         tokensOut = quote.collateralOut;
         fee = quote.fee;
 
         // Calculate price impact for sell
-        const currentPrice = outcome === 'YES' ? currentPrices.yesPrice : currentPrices.noPrice;
         const executionPrice = params.amount > 0n
           ? (tokensOut * 10n**18n) / params.amount
           : currentPrice;

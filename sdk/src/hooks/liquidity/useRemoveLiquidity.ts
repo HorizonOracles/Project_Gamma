@@ -5,7 +5,8 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAccount, usePublicClient, useWalletClient, useChainId } from 'wagmi';
 import { useGammaConfig } from '../../components/GammaProvider';
-import { DEFAULT_CONTRACTS, MARKET_FACTORY_ABI, MARKET_AMM_ABI } from '../../constants';
+import { DEFAULT_CONTRACTS, MARKET_FACTORY_ABI } from '../../constants';
+import { getMarketContract } from '../../utils/markets';
 
 export interface RemoveLiquidityParams {
   lpTokens: bigint; // Amount of LP tokens to remove
@@ -13,6 +14,7 @@ export interface RemoveLiquidityParams {
 
 /**
  * Hook to remove liquidity from a market
+ * Works with all market types (Binary, MultiChoice, etc.)
  * 
  * @example
  * ```tsx
@@ -53,7 +55,7 @@ export function useRemoveLiquidity(marketId: number) {
         throw new Error('MarketFactory address not configured');
       }
 
-      // Get market info to find AMM address
+      // Get market info to find market address
       const marketStruct = await publicClient.readContract({
         address: marketFactoryAddress,
         abi: MARKET_FACTORY_ABI,
@@ -61,15 +63,13 @@ export function useRemoveLiquidity(marketId: number) {
         args: [BigInt(marketId)],
       });
 
-      const ammAddress = marketStruct.amm;
+      const marketAddress = marketStruct.amm;
 
-      // Execute removeLiquidity transaction
-      const txHash = await walletClient.writeContract({
-        address: ammAddress,
-        abi: MARKET_AMM_ABI,
-        functionName: 'removeLiquidity',
-        args: [params.lpTokens],
-      });
+      // Get the correct market contract based on type
+      const marketContract = await getMarketContract(publicClient, marketAddress, walletClient);
+
+      // Execute removeLiquidity using contract class method
+      const txHash = await marketContract.removeLiquidity(params.lpTokens);
 
       return txHash;
     },

@@ -23,6 +23,10 @@ vi.mock('../../../components/GammaProvider', () => ({
   useGammaConfig: vi.fn(),
 }));
 
+vi.mock('../../../utils/markets', () => ({
+  getMarketContract: vi.fn(),
+}));
+
 const wrapper = ({ children }: { children: React.ReactNode }) => {
   const queryClient = new QueryClient({
     defaultOptions: {
@@ -47,6 +51,15 @@ describe('useLPPosition', () => {
       chainId: BNB_CHAIN.MAINNET,
       marketFactoryAddress: DEFAULT_CONFIG.marketFactoryAddress,
     });
+    
+    // Mock getMarketContract with default values
+    const marketsModule = await import('../../../utils/markets');
+    const mockMarketContract = {
+      getLPBalance: vi.fn().mockResolvedValue(5000000000000000000n),
+      getReserves: vi.fn().mockResolvedValue({ yes: 10000000000000000000n, no: 10000000000000000000n }),
+      getTotalCollateral: vi.fn().mockResolvedValue(100000000000000000000n),
+    };
+    vi.mocked(marketsModule.getMarketContract).mockResolvedValue(mockMarketContract as any);
   });
 
   it('should fetch LP position successfully', async () => {
@@ -60,13 +73,8 @@ describe('useLPPosition', () => {
       status: 0,
     };
 
-    // Mock readContract calls: getMarket, balanceOf, reserveYes, reserveNo, totalCollateral
-    mockPublicClient.readContract = vi.fn()
-      .mockResolvedValueOnce(mockMarketInfo) // getMarket
-      .mockResolvedValueOnce(5000000000000000000n) // balanceOf (LP tokens)
-      .mockResolvedValueOnce(10000000000000000000n) // reserveYes
-      .mockResolvedValueOnce(10000000000000000000n) // reserveNo
-      .mockResolvedValueOnce(100000000000000000000n); // totalCollateral
+    // Mock readContract call for getMarket
+    mockPublicClient.readContract = vi.fn().mockResolvedValue(mockMarketInfo);
 
     const { result } = renderHook(() => useLPPosition(1), { wrapper });
 
@@ -110,12 +118,17 @@ describe('useLPPosition', () => {
       status: 0,
     };
 
-    mockPublicClient.readContract = vi.fn()
-      .mockResolvedValueOnce(mockMarketInfo) // getMarket
-      .mockResolvedValueOnce(0n) // balanceOf (LP tokens)
-      .mockResolvedValueOnce(0n) // reserveYes
-      .mockResolvedValueOnce(0n) // reserveNo
-      .mockResolvedValueOnce(0n); // totalCollateral
+    // Mock readContract for getMarket
+    mockPublicClient.readContract = vi.fn().mockResolvedValue(mockMarketInfo);
+    
+    // Override the market contract mock for this test
+    const marketsModule = await import('../../../utils/markets');
+    const zeroMarketContract = {
+      getLPBalance: vi.fn().mockResolvedValue(0n),
+      getReserves: vi.fn().mockResolvedValue({ yes: 0n, no: 0n }),
+      getTotalCollateral: vi.fn().mockResolvedValue(0n),
+    };
+    vi.mocked(marketsModule.getMarketContract).mockResolvedValue(zeroMarketContract as any);
 
     const { result } = renderHook(() => useLPPosition(1), { wrapper });
 

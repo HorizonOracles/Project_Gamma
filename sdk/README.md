@@ -491,6 +491,204 @@ redeem();
 
 ## Utility Functions
 
+### EIP-712 Signing (AI Oracle Integration)
+
+The SDK includes comprehensive EIP-712 utilities for creating cryptographically signed proposals that can be verified by the AIOracleAdapter contract.
+
+#### Evidence Hash Computation
+
+```tsx
+import { computeEvidenceHash } from '@project-gamma/react-sdk';
+
+// Compute evidence hash from URIs (IPFS, HTTP, etc.)
+const evidenceURIs = [
+  'ipfs://QmTest1234...',
+  'https://example.com/evidence.json'
+];
+const evidenceHash = computeEvidenceHash(evidenceURIs);
+// Result: 0x1234... (32-byte hash)
+```
+
+#### EIP-712 Domain and Digest
+
+```tsx
+import {
+  createAIOracleDomain,
+  computeDomainSeparator,
+  buildProposedOutcome,
+  computeProposalDigest,
+} from '@project-gamma/react-sdk';
+
+// 1. Create EIP-712 domain for AIOracleAdapter
+const domain = createAIOracleDomain(
+  56, // Chain ID (BSC mainnet)
+  '0x8773B8C5a55390DAbAD33dB46a13cd59Fb05cF93' // AIOracleAdapter address
+);
+
+// 2. Compute domain separator
+const domainSeparator = computeDomainSeparator(domain);
+
+// 3. Build proposal struct
+const proposal = buildProposedOutcome({
+  marketId: 123n,
+  outcomeId: 0n, // YES
+  closeTime: 1699999999n,
+  evidenceHash: computeEvidenceHash(['ipfs://QmTest']),
+  notBefore: 1699000000n, // Optional
+  deadline: 1700000000n, // Optional
+});
+
+// 4. Compute proposal digest (hash to sign)
+const digest = computeProposalDigest(proposal, domainSeparator);
+```
+
+#### Signing Proposals
+
+```tsx
+import { signProposal, signProposalWithAccount } from '@project-gamma/react-sdk';
+import { privateKeyToAccount } from 'viem/accounts';
+
+// Option 1: Sign with private key directly
+const privateKey = '0x1234...'; // AI signer private key
+const signature = await signProposal(proposal, domainSeparator, privateKey);
+
+// Option 2: Sign with viem account
+const account = privateKeyToAccount(privateKey);
+const signature = await signProposalWithAccount(proposal, domainSeparator, account);
+
+// Signature is ready to submit to contract
+console.log('Signature:', signature);
+// Result: 0xabcd... (65-byte signature: r + s + v)
+```
+
+#### Verifying Signatures
+
+```tsx
+import { verifyProposalSignature, isValidProposalSignature } from '@project-gamma/react-sdk';
+
+// Recover signer address from signature
+const signerAddress = await verifyProposalSignature(
+  proposal,
+  domainSeparator,
+  signature
+);
+
+// Check if signature matches expected signer
+const isValid = await isValidProposalSignature(
+  proposal,
+  domainSeparator,
+  signature,
+  expectedSignerAddress
+);
+
+console.log('Signer:', signerAddress);
+console.log('Valid:', isValid);
+```
+
+#### Working with Signature Components
+
+```tsx
+import {
+  splitSignature,
+  joinSignature,
+  normalizeSignature,
+  isValidSignature,
+  formatSignature,
+} from '@project-gamma/react-sdk';
+
+// Split signature into r, s, v components
+const { r, s, v } = splitSignature(signature);
+console.log('r:', r); // 0x... (32 bytes)
+console.log('s:', s); // 0x... (32 bytes)
+console.log('v:', v); // 27 or 28
+
+// Rejoin components into signature
+const rejoined = joinSignature({ r, s, v });
+
+// Normalize signature (convert v=0/1 to v=27/28)
+const normalized = normalizeSignature(signature);
+
+// Validate signature format
+if (isValidSignature(signature)) {
+  console.log('Valid 65-byte signature');
+}
+
+// Format for display
+console.log(formatSignature(signature));
+// Output:
+// Signature {
+//   r: 0x...
+//   s: 0x...
+//   v: 27
+// }
+```
+
+#### Complete AI Oracle Signing Flow
+
+```tsx
+import {
+  computeEvidenceHash,
+  createAIOracleDomain,
+  computeDomainSeparator,
+  buildProposedOutcome,
+  signProposal,
+  verifyProposalSignature,
+} from '@project-gamma/react-sdk';
+import { parseUnits } from 'viem';
+
+// 1. Prepare evidence
+const evidenceURIs = [
+  'ipfs://QmABC123...',
+  'https://example.com/evidence.json',
+];
+const evidenceHash = computeEvidenceHash(evidenceURIs);
+
+// 2. Set up EIP-712 domain
+const chainId = 56; // BSC mainnet
+const contractAddress = '0x8773B8C5a55390DAbAD33dB46a13cd59Fb05cF93';
+const domain = createAIOracleDomain(chainId, contractAddress);
+const domainSeparator = computeDomainSeparator(domain);
+
+// 3. Build proposal
+const marketCloseTime = BigInt(Math.floor(Date.now() / 1000) + 86400 * 7);
+const proposal = buildProposedOutcome({
+  marketId: 123n,
+  outcomeId: 0n, // YES
+  closeTime: marketCloseTime,
+  evidenceHash,
+  notBefore: BigInt(Math.floor(Date.now() / 1000)),
+  deadline: BigInt(Math.floor(Date.now() / 1000) + 86400),
+});
+
+// 4. Sign with AI signer private key
+const aiSignerPrivateKey = process.env.AI_SIGNER_PRIVATE_KEY!;
+const signature = await signProposal(
+  proposal,
+  domainSeparator,
+  aiSignerPrivateKey
+);
+
+// 5. Verify signature (optional)
+const recoveredSigner = await verifyProposalSignature(
+  proposal,
+  domainSeparator,
+  signature
+);
+console.log('Proposal signed by:', recoveredSigner);
+
+// 6. Submit to contract
+const { useProposeResolution } = require('@project-gamma/react-sdk');
+const { write: proposeResolution } = useProposeResolution(marketId);
+
+proposeResolution({
+  outcomeId: Number(proposal.outcomeId),
+  evidenceHash: proposal.evidenceHash,
+  signature,
+  bondAmount: parseUnits('1000', 18),
+  evidenceURIs,
+});
+```
+
 ### Token Amount Formatting
 
 ```tsx

@@ -21,6 +21,10 @@ vi.mock('../../../components/GammaProvider', () => ({
   useGammaConfig: vi.fn(),
 }));
 
+vi.mock('../../../utils/markets', () => ({
+  getMarketContract: vi.fn(),
+}));
+
 const wrapper = ({ children }: { children: React.ReactNode }) => {
   const queryClient = new QueryClient({
     defaultOptions: {
@@ -57,10 +61,17 @@ describe('usePrices', () => {
       status: 0,
     };
 
+    const mockMarketContract = {
+      getPrice: vi.fn()
+        .mockResolvedValueOnce(600000000000000000n) // YES price
+        .mockResolvedValueOnce(400000000000000000n), // NO price
+    };
+
     mockPublicClient.readContract = vi.fn()
-      .mockResolvedValueOnce(mockMarketInfo) // getMarket
-      .mockResolvedValueOnce(600000000000000000n) // getYesPrice
-      .mockResolvedValueOnce(400000000000000000n); // getNoPrice
+      .mockResolvedValueOnce(mockMarketInfo); // getMarket
+
+    const marketsModule = await import('../../../utils/markets');
+    vi.mocked(marketsModule.getMarketContract).mockResolvedValue(mockMarketContract as any);
 
     const { result } = renderHook(() => usePrices(1), { wrapper });
 

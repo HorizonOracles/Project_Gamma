@@ -5,7 +5,8 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAccount, usePublicClient, useWalletClient, useChainId } from 'wagmi';
 import { useGammaConfig } from '../../components/GammaProvider';
-import { DEFAULT_CONTRACTS, MARKET_FACTORY_ABI, MARKET_AMM_ABI, ERC20_ABI } from '../../constants';
+import { DEFAULT_CONTRACTS, MARKET_FACTORY_ABI } from '../../constants';
+import { getMarketContract } from '../../utils/markets';
 
 export interface AddLiquidityParams {
   amount: bigint; // Amount of collateral to add
@@ -13,6 +14,7 @@ export interface AddLiquidityParams {
 
 /**
  * Hook to add liquidity to a market
+ * Works with all market types (Binary, MultiChoice, etc.)
  * 
  * @example
  * ```tsx
@@ -53,7 +55,7 @@ export function useAddLiquidity(marketId: number) {
         throw new Error('MarketFactory address not configured');
       }
 
-      // Get market info to find AMM address
+      // Get market info to find market address
       const marketStruct = await publicClient.readContract({
         address: marketFactoryAddress,
         abi: MARKET_FACTORY_ABI,
@@ -61,34 +63,14 @@ export function useAddLiquidity(marketId: number) {
         args: [BigInt(marketId)],
       });
 
-      const ammAddress = marketStruct.amm;
-      const collateralToken = marketStruct.collateralToken;
+      const marketAddress = marketStruct.amm;
 
-      // Check and approve collateral token if needed
-      const currentAllowance = await publicClient.readContract({
-        address: collateralToken,
-        abi: ERC20_ABI,
-        functionName: 'allowance',
-        args: [address, ammAddress],
-      }) as bigint;
+      // Get the correct market contract based on type
+      const marketContract = await getMarketContract(publicClient, marketAddress, walletClient);
 
-      if (currentAllowance < params.amount) {
-        const approveHash = await walletClient.writeContract({
-          address: collateralToken,
-          abi: ERC20_ABI,
-          functionName: 'approve',
-          args: [ammAddress, params.amount],
-        });
-        await publicClient.waitForTransactionReceipt({ hash: approveHash });
-      }
-
-      // Execute addLiquidity transaction
-      const txHash = await walletClient.writeContract({
-        address: ammAddress,
-        abi: MARKET_AMM_ABI,
-        functionName: 'addLiquidity',
-        args: [params.amount],
-      });
+      // Execute addLiquidity using contract class method
+      // BinaryMarket.addLiquidity handles approval internally
+      const txHash = await marketContract.addLiquidity(params.amount);
 
       return txHash;
     },

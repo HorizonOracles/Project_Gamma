@@ -1,0 +1,19 @@
+node_modules
+dist
+.DS_Store
+server/public
+vite.config.ts.*
+*.tar.gz
+*.sh
+*.log
+attached_assets/
+
+# Environment variables - DO NOT COMMIT
+.env
+.env.local
+.env.*.local
+
+# Temporary files
+download-server.js
+push-to-github.sh
+DOWNLOAD_THIS_FILE.tar.gz

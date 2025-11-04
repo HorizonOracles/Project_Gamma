@@ -5,7 +5,8 @@
 import { Address, decodeEventLog } from 'viem';
 import { PublicClient, WalletClient } from 'viem';
 import { ContractError, CreateMarketParams, MarketInfo, MarketStatus, MarketType } from '../types';
-import { MARKET_FACTORY_ABI, MARKET_AMM_ABI, I_MARKET_ABI } from '../constants';
+import { MARKET_FACTORY_ABI, I_MARKET_ABI, BINARY_MARKET_ABI } from '../constants';
+import { getMarketContract } from '../utils/markets';
 
 /**
  * MarketParams as expected by the MarketFactory contract
@@ -24,12 +25,14 @@ export interface MarketParams {
 export interface MarketStruct {
   id: bigint;
   creator: Address;
+  marketType: number;
   amm: Address;
   collateralToken: Address;
   closeTime: bigint;
   category: string;
   metadataURI: string;
   creatorStake: bigint;
+  outcomeCount: number;
   stakeRefunded: boolean;
   status: number; // 0=Active, 1=Closed, 2=Resolved, 3=Invalid
 }
@@ -96,7 +99,7 @@ export class MarketFactory {
           category: marketParams[2],
           metadataURI: marketParams[3],
           creatorStake: marketParams[4],
-        }],
+        } as any],
         account,
         chain: this.walletClient.chain,
       });
@@ -174,24 +177,14 @@ export class MarketFactory {
           marketStatus = MarketStatus.Active;
       }
       
-      // Fetch liquidity from MarketAMM contract
+      // Fetch liquidity from market contract using the new architecture
       let liquidity = { yes: 0n, no: 0n };
       try {
-        const [yesReserve, noReserve] = await Promise.all([
-          this.client.readContract({
-            address: result.amm,
-            abi: MARKET_AMM_ABI,
-            functionName: 'reserveYes',
-          }),
-          this.client.readContract({
-            address: result.amm,
-            abi: MARKET_AMM_ABI,
-            functionName: 'reserveNo',
-          }),
-        ]);
+        const marketContract = await getMarketContract(this.client, result.amm);
+        const reserves = await marketContract.getReserves();
         liquidity = {
-          yes: yesReserve as bigint,
-          no: noReserve as bigint,
+          yes: reserves.yes,
+          no: reserves.no,
         };
       } catch {
         // If liquidity fetch fails, keep defaults
@@ -222,16 +215,17 @@ export class MarketFactory {
         // If event log fetch fails, keep default
       }
       
-      // Calculate total volume from Trade events
+      // Calculate total volume from trade events
+      // BinaryMarket uses SharesPurchased events instead of Trade events
       let totalVolume = 0n;
       try {
-        const tradeEvent = MARKET_AMM_ABI.find(
-          (item) => item.type === 'event' && item.name === 'Trade'
+        const sharesPurchasedEvent = BINARY_MARKET_ABI.find(
+          (item) => item.type === 'event' && item.name === 'SharesPurchased'
         );
-        if (tradeEvent) {
+        if (sharesPurchasedEvent) {
           const tradeLogs = await this.client.getLogs({
             address: result.amm,
-            event: tradeEvent as any,
+            event: sharesPurchasedEvent as any,
             fromBlock: 0n,
           });
           
@@ -239,16 +233,16 @@ export class MarketFactory {
           for (const log of tradeLogs) {
             try {
               const decodedLog = decodeEventLog({
-                abi: MARKET_AMM_ABI,
+                abi: BINARY_MARKET_ABI,
                 data: log.data,
                 topics: log.topics,
               });
               
-              if (decodedLog.eventName === 'Trade') {
-                const eventArgs = decodedLog.args as {
-                  collateralIn: bigint;
-                };
-                totalVolume += eventArgs.collateralIn || 0n;
+              if (decodedLog.eventName === 'SharesPurchased') {
+                const eventArgs = decodedLog.args as any;
+                // Try to get collateralIn from various possible field names
+                const collateralIn = eventArgs.collateralIn || eventArgs.collateralPaid || 0n;
+                totalVolume += collateralIn;
               }
             } catch {
               // Skip invalid logs
@@ -281,7 +275,7 @@ export class MarketFactory {
         marketType = marketInfo.marketType as MarketType;
         outcomeCount = marketInfo.outcomeCount;
       } catch {
-        // If IMarket interface not available, default to Binary (MarketAMM)
+        // If IMarket interface not available, default to Binary
         marketType = MarketType.Binary;
         outcomeCount = 2n;
       }
@@ -369,7 +363,7 @@ export class MarketFactory {
         args: [offset, limit],
       });
 
-      return result as MarketStruct[];
+      return result as unknown as MarketStruct[];
     } catch (error) {
       throw new ContractError(
         `Failed to get markets: ${error instanceof Error ? error.message : 'Unknown error'}`,
@@ -391,7 +385,7 @@ export class MarketFactory {
         args: [offset, limit],
       });
 
-      return result as MarketStruct[];
+      return result as unknown as MarketStruct[];
     } catch (error) {
       throw new ContractError(
         `Failed to get active markets: ${error instanceof Error ? error.message : 'Unknown error'}`,

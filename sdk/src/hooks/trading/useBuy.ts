@@ -6,10 +6,9 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAccount, usePublicClient, useWalletClient, useChainId } from 'wagmi';
 import { useGammaConfig } from '../../components/GammaProvider';
 import { MarketOutcome } from '../../types';
-import { MarketAMM } from '../../contracts/MarketAMM';
 import { MarketFactory } from '../../contracts/MarketFactory';
-import { DEFAULT_CONTRACTS, MARKET_AMM_ABI } from '../../constants';
-import { applySlippageTolerance } from '../../utils';
+import { DEFAULT_CONTRACTS } from '../../constants';
+import { applySlippageTolerance, getMarketContract } from '../../utils';
 
 export interface BuyParams {
   outcomeId: number; // 0 for YES, 1 for NO
@@ -62,23 +61,23 @@ export function useBuy(marketId: number) {
         throw new Error('MarketFactory address not configured');
       }
 
-      // Resolve market AMM address
+      // Resolve market address from factory
       const marketFactory = new MarketFactory(publicClient, marketFactoryAddress);
       const marketInfo = await marketFactory.getMarket(BigInt(marketId));
-      const ammAddress = marketInfo.marketAddress;
+      const marketAddress = marketInfo.marketAddress;
 
-      // Create MarketAMM instance
-      const amm = new MarketAMM(publicClient, ammAddress);
+      // Instantiate correct market contract based on type (auto-detects)
+      const market = await getMarketContract(publicClient, marketAddress, walletClient);
       const outcome: MarketOutcome = params.outcomeId === 0 ? 'YES' : 'NO';
 
       // Check liquidity before attempting trade
-      const liquidity = await amm.getLiquidity(BigInt(marketId));
-      if (liquidity.yes === 0n || liquidity.no === 0n) {
+      const reserves = await market.getReserves();
+      if (reserves.yes === 0n || reserves.no === 0n) {
         throw new Error('Market has no liquidity. Please add liquidity before trading.');
       }
 
       // Get quote to calculate minimum amount out
-      const quote = await amm.getBuyQuote(params.amount, outcome, address);
+      const quote = await market.getBuyQuote(params.amount, outcome, address);
       
       // Validate quote is valid
       if (quote.tokensOut === 0n) {
@@ -93,16 +92,15 @@ export function useBuy(marketId: number) {
         throw new Error('Minimum tokens out is zero. Try reducing slippage tolerance or trade amount.');
       }
 
-      // Execute trade via walletClient.writeContract
-      const functionName = outcome === 'YES' ? 'buyYes' : 'buyNo';
-      const txHash = await walletClient.writeContract({
-        address: ammAddress,
-        abi: MARKET_AMM_ABI,
-        functionName,
-        args: [params.amount, minAmountOut],
+      // Execute trade using the market contract's buyTokens method
+      const result = await market.buyTokens({
+        marketId: BigInt(marketId),
+        outcome,
+        amount: params.amount,
+        minAmountOut,
       });
 
-      return txHash;
+      return result.transactionHash!;
     },
     onSuccess: () => {
       // Invalidate relevant queries

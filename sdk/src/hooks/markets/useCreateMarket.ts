@@ -241,17 +241,20 @@ export function useCreateMarket() {
         );
       }
 
-      // Create market
+      // Create market with new MarketParams struct
       const txHash = await walletClient.writeContract({
         address: marketFactoryAddress,
         abi: MARKET_FACTORY_ABI,
         functionName: 'createMarket',
         args: [{
+          marketType: params.marketType ?? 0, // Default to Binary (0)
           collateralToken: params.collateralToken,
           closeTime: params.endTime,
           category: params.category,
           metadataURI: params.metadataURI,
           creatorStake: params.creatorStake,
+          outcomeCount: params.outcomeCount ?? 2, // Default to 2 outcomes
+          liquidityParameter: params.liquidityParameter ?? 0n, // Default to 0 (not used for Binary)
         }],
       });
 

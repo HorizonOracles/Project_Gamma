@@ -8,7 +8,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React from 'react';
 import { useBuy } from '../../../hooks/trading/useBuy';
 import { MarketFactory } from '../../../contracts/MarketFactory';
-import { MarketAMM } from '../../../contracts/MarketAMM';
+import { BinaryMarket } from '../../../contracts/BinaryMarket';
 import { DEFAULT_CONTRACTS, BNB_CHAIN } from '../../../constants';
 import {
   mockPublicClient,
@@ -31,7 +31,14 @@ vi.mock('../../../components/GammaProvider', () => ({
 }));
 
 vi.mock('../../../contracts/MarketFactory');
-vi.mock('../../../contracts/MarketAMM');
+vi.mock('../../../contracts/BinaryMarket');
+vi.mock('../../../utils', () => ({
+  applySlippageTolerance: vi.fn((amount, slippageBps) => {
+    const slippageMultiplier = BigInt(10000 - slippageBps);
+    return (amount * slippageMultiplier) / 10000n;
+  }),
+  getMarketContract: vi.fn(),
+}));
 
 const wrapper = ({ children }: { children: React.ReactNode }) => {
   const queryClient = new QueryClient({
@@ -96,12 +103,17 @@ describe('useBuy', () => {
     };
     vi.mocked(MarketFactoryModule.MarketFactory).mockImplementation(() => mockMarketFactory as any);
 
-    const MarketAMMModule = await import('../../../contracts/MarketAMM');
-    const mockMarketAMM = {
+    const BinaryMarketModule = await import('../../../contracts/BinaryMarket');
+    const mockBinaryMarket = {
       getBuyQuote: vi.fn().mockResolvedValue(mockQuote),
       getLiquidity: vi.fn().mockResolvedValue(mockLiquidity),
+      getReserves: vi.fn().mockResolvedValue(mockLiquidity),
+      buyTokens: vi.fn().mockResolvedValue({ transactionHash: mockTransactionHash }),
     };
-    vi.mocked(MarketAMMModule.MarketAMM).mockImplementation(() => mockMarketAMM as any);
+    vi.mocked(BinaryMarketModule.BinaryMarket).mockImplementation(() => mockBinaryMarket as any);
+
+    const utilsModule = await import('../../../utils');
+    vi.mocked(utilsModule.getMarketContract).mockResolvedValue(mockBinaryMarket as any);
 
     const { result } = renderHook(() => useBuy(1), { wrapper });
 
@@ -137,8 +149,10 @@ describe('useBuy', () => {
     result.current.write(params);
 
     await waitFor(() => {
-      expect(result.current.error).toBeDefined();
+      expect(result.current.isError).toBe(true);
     });
+
+    expect(result.current.error).toBeDefined();
   });
 
   it('should not execute if wallet is not connected', async () => {
@@ -194,12 +208,17 @@ describe('useBuy', () => {
     };
     vi.mocked(MarketFactoryModule.MarketFactory).mockImplementation(() => mockMarketFactory as any);
 
-    const MarketAMMModule = await import('../../../contracts/MarketAMM');
-    const mockMarketAMM = {
+    const BinaryMarketModule = await import('../../../contracts/BinaryMarket');
+    const mockBinaryMarket = {
       getBuyQuote: vi.fn().mockResolvedValue(mockQuote),
       getLiquidity: vi.fn().mockResolvedValue(mockLiquidity),
+      getReserves: vi.fn().mockResolvedValue(mockLiquidity),
+      buyTokens: vi.fn().mockResolvedValue({ transactionHash: mockTransactionHash }),
     };
-    vi.mocked(MarketAMMModule.MarketAMM).mockImplementation(() => mockMarketAMM as any);
+    vi.mocked(BinaryMarketModule.BinaryMarket).mockImplementation(() => mockBinaryMarket as any);
+
+    const utilsModule = await import('../../../utils');
+    vi.mocked(utilsModule.getMarketContract).mockResolvedValue(mockBinaryMarket as any);
 
     if (mockWalletClient.writeContract) {
       vi.mocked(mockWalletClient.writeContract).mockResolvedValue(mockTransactionHash);
@@ -219,11 +238,9 @@ describe('useBuy', () => {
       expect(result.current.isSuccess).toBe(true);
     });
 
-    if (mockWalletClient.writeContract) {
-      expect(mockWalletClient.writeContract).toHaveBeenCalled();
-      const callArgs = mockWalletClient.writeContract.mock.calls[0][0];
-      expect(callArgs.args[1]).toBeLessThan(mockQuote.tokensOut);
-    }
+    // Check that buyTokens was called with slippage applied
+    expect(mockBinaryMarket.buyTokens).toHaveBeenCalled();
+    const callArgs = mockBinaryMarket.buyTokens.mock.calls[0][0];
+    expect(callArgs.minAmountOut).toBeLessThan(mockQuote.tokensOut);
   });
 });
-

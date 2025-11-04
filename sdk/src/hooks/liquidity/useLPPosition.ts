@@ -5,7 +5,8 @@
 import { useQuery } from '@tanstack/react-query';
 import { useAccount, usePublicClient, useChainId } from 'wagmi';
 import { useGammaConfig } from '../../components/GammaProvider';
-import { DEFAULT_CONTRACTS, MARKET_FACTORY_ABI, MARKET_AMM_ABI } from '../../constants';
+import { DEFAULT_CONTRACTS, MARKET_FACTORY_ABI } from '../../constants';
+import { getMarketContract } from '../../utils/markets';
 
 export interface LPPosition {
   lpTokens: bigint;
@@ -15,6 +16,7 @@ export interface LPPosition {
 
 /**
  * Hook to get user's LP position in a market
+ * Works with all market types (Binary, MultiChoice, etc.)
  * 
  * @example
  * ```tsx
@@ -54,7 +56,7 @@ export function useLPPosition(marketId: number | undefined) {
         throw new Error('MarketFactory address not configured');
       }
 
-      // Get market info to find AMM address
+      // Get market info to find market address
       const marketStruct = await publicClient.readContract({
         address: marketFactoryAddress,
         abi: MARKET_FACTORY_ABI,
@@ -62,53 +64,33 @@ export function useLPPosition(marketId: number | undefined) {
         args: [BigInt(marketId)],
       });
 
-      const ammAddress = marketStruct.amm;
+      const marketAddress = marketStruct.amm;
 
-      // Get LP balance, reserves, and total LP supply
-      const [lpBalance, reserveYes, reserveNo, totalCollateral] = await Promise.all([
-        publicClient.readContract({
-          address: ammAddress,
-          abi: MARKET_AMM_ABI,
-          functionName: 'balanceOf',
-          args: [address],
-        }),
-        publicClient.readContract({
-          address: ammAddress,
-          abi: MARKET_AMM_ABI,
-          functionName: 'reserveYes',
-        }),
-        publicClient.readContract({
-          address: ammAddress,
-          abi: MARKET_AMM_ABI,
-          functionName: 'reserveNo',
-        }),
-        publicClient.readContract({
-          address: ammAddress,
-          abi: MARKET_AMM_ABI,
-          functionName: 'totalCollateral',
-        }),
+      // Get the correct market contract based on type
+      const marketContract = await getMarketContract(publicClient, marketAddress);
+
+      // Get LP balance and reserves using contract class methods
+      const [lpBalance, reserves, totalCollateral] = await Promise.all([
+        marketContract.getLPBalance(address),
+        marketContract.getReserves(),
+        marketContract.getTotalCollateral(),
       ]);
 
-      const lpBalanceBigInt = lpBalance as bigint;
-      const reserveYesBigInt = reserveYes as bigint;
-      const reserveNoBigInt = reserveNo as bigint;
-      const totalCollateralBigInt = totalCollateral as bigint;
-
       // Calculate share percentage
-      // Note: totalCollateral represents total LP supply in this AMM
-      const share = totalCollateralBigInt > 0n 
-        ? Number((lpBalanceBigInt * 10000n) / totalCollateralBigInt) / 100 
+      // totalCollateral represents total LP supply
+      const share = totalCollateral > 0n 
+        ? Number((lpBalance * 10000n) / totalCollateral) / 100 
         : 0;
 
       // Calculate value: share of total liquidity in collateral tokens
       // Total liquidity value = yesReserve + noReserve (they should be equal in balanced pool)
-      const totalLiquidityValue = reserveYesBigInt + reserveNoBigInt;
-      const value = totalCollateralBigInt > 0n
-        ? (lpBalanceBigInt * totalLiquidityValue) / totalCollateralBigInt
+      const totalLiquidityValue = reserves.yes + reserves.no;
+      const value = totalCollateral > 0n
+        ? (lpBalance * totalLiquidityValue) / totalCollateral
         : 0n;
 
       return {
-        lpTokens: lpBalanceBigInt,
+        lpTokens: lpBalance,
         value,
         share,
       };
